@@ -1,27 +1,3 @@
-```
-kotoba · built-in CLI
----------------------
-./kotoba                 help
-./kotoba legend          第零部 · MASTER LEGEND
-./kotoba rings           ring · color · prime table
-./kotoba glyph △         glyph lookup
-./kotoba parts           list 部 (divisions)
-./kotoba part 8          show 第八部
-./kotoba sections        list all § sections
-./kotoba section 17      show § 17
-./kotoba predict         list all predictions P1-P74 · S1-S7
-./kotoba predict P20     show one prediction
-./kotoba pillars         the 10 theory pillars
-./kotoba grep -i taVNS   search the spec
-./kotoba stats           doc stats
-./kotoba scan FILE       parse arbitrary kotoba doc
-
-source : prompt.md (identical to this README body)
-stdlib only · python3 · no deps
-```
-
----
-
 # ETH · 全版 統合 · MASTER
 ## Enteric Translation Hypothesis
 ## Frumkin · 2026 · 密コトバ 仕様

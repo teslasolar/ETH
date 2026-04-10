@@ -1,0 +1,341 @@
+#!/usr/bin/env python3
+# kotoba · ETH 密コトバ CLI
+# parse · navigate · lookup the Enteric Translation Hypothesis master
+
+import os
+import re
+import signal
+import sys
+import textwrap
+
+# allow piping into head/less without BrokenPipeError
+try:
+    signal.signal(signal.SIGPIPE, signal.SIG_DFL)
+except (AttributeError, ValueError):
+    pass  # Windows
+
+HERE = os.path.dirname(os.path.abspath(__file__))
+DEFAULT_SOURCES = ("prompt.md", "README.md")
+
+GLYPHS = {
+    "●":  ("R0 GROUND",   "L0 · body/gut/ENS · physical"),
+    "⬛": ("R1 SIGNAL",   "L1 · PNS/IoT/nociceptor · sensor"),
+    "┃":  ("R2 GATE",     "L2 · vagus/brainstem/NTS/LC · SCADA"),
+    "〜": ("R2 BUS",      "vagus bus · 80% afferent · 20% efferent"),
+    "♡":  ("R3 AFFECT",   "L3 · limbic/amygdala/HPA · MES"),
+    "△":  ("R4 FORGE",    "L4 · PFC/OFC/vmPFC/insula · ERP"),
+    "◐":  ("R5 IDENTITY", "L5 · narrative/self scaffold"),
+    "◯":  ("R6 OBSERVER", "L5 · Enterprise · witness"),
+    "🧠": ("brain",       "cortical pole"),
+    "📐": ("sigil",       "master mark"),
+    "🦆": ("sigil",       "master mark"),
+}
+
+RINGS = [
+    ("●",  "R0", "#936", "GROUND",    2),
+    ("⬛", "R1", "#0ad", "SIGNAL",    3),
+    ("┃",  "R2", "#fa0", "GATE",      5),
+    ("♡",  "R3", "#f44", "AFFECT",    7),
+    ("△",  "R4", "#4a4", "FORGE",    11),
+    ("◐",  "R5", "#a4f", "IDENTITY", 13),
+    ("◯",  "R6", "#fff", "OBSERVER", 17),
+]
+
+HELP = """kotoba · ETH 密コトバ CLI
+
+usage :
+  kotoba                        show this help
+  kotoba legend                 print 第零部 · MASTER LEGEND
+  kotoba rings                  ring color / prime table
+  kotoba glyph <sym>            lookup a glyph (e.g. ● △ 〜)
+  kotoba parts                  list 部 (divisions)
+  kotoba part <N>               show 第N部 (0-9 or 終)
+  kotoba sections               list all § sections
+  kotoba section <N>            show § N (e.g. 17)
+  kotoba predict                list all predictions (P1-P74 · S1-S7)
+  kotoba predict <ID>           show one (e.g. P20, S3)
+  kotoba pillars                the 10 theory pillars (第八部)
+  kotoba grep <term> [-i]       search the spec
+  kotoba stats                  document stats
+  kotoba scan [FILE]            parse arbitrary kotoba doc
+
+source : prompt.md or README.md in the CLI's directory
+"""
+
+
+def load(path=None):
+    if path and os.path.isfile(path):
+        with open(path, "r", encoding="utf-8") as f:
+            return f.read()
+    for name in DEFAULT_SOURCES:
+        p = os.path.join(HERE, name)
+        if os.path.isfile(p):
+            with open(p, "r", encoding="utf-8") as f:
+                return f.read()
+    sys.exit("kotoba: no source (prompt.md / README.md) found")
+
+
+def split_parts(text):
+    # splits on lines starting with "# 第" or "# 終"
+    parts = []
+    cur_title = None
+    cur_buf = []
+    for line in text.splitlines():
+        if re.match(r"^#\s+(第[零一二三四五六七八九]部|終)", line):
+            if cur_title is not None:
+                parts.append((cur_title, "\n".join(cur_buf).rstrip()))
+            cur_title = line.lstrip("# ").strip()
+            cur_buf = []
+        else:
+            if cur_title is not None:
+                cur_buf.append(line)
+    if cur_title is not None:
+        parts.append((cur_title, "\n".join(cur_buf).rstrip()))
+    return parts
+
+
+def split_sections(text):
+    # splits on "## N · title" headers
+    secs = []
+    cur_num = None
+    cur_title = None
+    cur_buf = []
+    pat = re.compile(r"^##\s+(\d+)\s*·\s*(.+)$")
+    for line in text.splitlines():
+        m = pat.match(line)
+        if m:
+            if cur_num is not None:
+                secs.append((cur_num, cur_title, "\n".join(cur_buf).rstrip()))
+            cur_num = int(m.group(1))
+            cur_title = m.group(2).strip()
+            cur_buf = []
+        else:
+            if cur_num is not None:
+                cur_buf.append(line)
+    if cur_num is not None:
+        secs.append((cur_num, cur_title, "\n".join(cur_buf).rstrip()))
+    return secs
+
+
+def find_predictions(text):
+    # returns dict id -> line(s) collapsed
+    pat = re.compile(r"^(P\d+|S\d+)\b\s*(.*)$")
+    out = {}
+    lines = text.splitlines()
+    for i, line in enumerate(lines):
+        stripped = line.strip()
+        m = pat.match(stripped)
+        if not m:
+            continue
+        pid = m.group(1)
+        body = m.group(2).rstrip()
+        # pull continuation lines (indented further than the P/S line)
+        j = i + 1
+        while j < len(lines):
+            nxt = lines[j]
+            if not nxt.strip():
+                break
+            # continuation = leading whitespace > original
+            if re.match(r"^\s{4,}\S", nxt) and not pat.match(nxt.strip()):
+                body += "\n    " + nxt.strip()
+                j += 1
+            else:
+                break
+        if pid not in out:
+            out[pid] = body
+    return out
+
+
+def cmd_legend(text):
+    parts = split_parts(text)
+    for title, body in parts:
+        if title.startswith("第零部"):
+            print("# " + title)
+            print(body)
+            return
+    sys.exit("kotoba: legend not found")
+
+
+def cmd_rings(_text):
+    print("ring  glyph  color  name       prime")
+    print("----  -----  -----  ---------  -----")
+    for glyph, r, color, name, prime in RINGS:
+        print(f"{r:<5} {glyph:<5}  {color:<5}  {name:<9}  {prime}")
+
+
+def cmd_glyph(_text, sym):
+    if sym in GLYPHS:
+        label, desc = GLYPHS[sym]
+        print(f"{sym}  {label}")
+        print(f"    {desc}")
+        return
+    sys.exit(f"kotoba: unknown glyph {sym!r}")
+
+
+def cmd_parts(text):
+    for title, _ in split_parts(text):
+        print(title)
+
+
+def cmd_part(text, key):
+    parts = split_parts(text)
+    # accept 0..9 or kanji or 'end'/'終'
+    num_map = {
+        "0": "第零部", "1": "第一部", "2": "第二部", "3": "第三部",
+        "4": "第四部", "5": "第五部", "6": "第六部", "7": "第七部",
+        "8": "第八部", "9": "第九部", "end": "終", "終": "終",
+    }
+    target = num_map.get(key.lower(), key)
+    for title, body in parts:
+        if title.startswith(target):
+            print("# " + title)
+            print(body)
+            return
+    sys.exit(f"kotoba: part {key!r} not found")
+
+
+def cmd_sections(text):
+    for num, title, _ in split_sections(text):
+        print(f"§{num:>2}  {title}")
+
+
+def cmd_section(text, key):
+    try:
+        n = int(key)
+    except ValueError:
+        sys.exit(f"kotoba: section must be integer, got {key!r}")
+    for num, title, body in split_sections(text):
+        if num == n:
+            print(f"## {num} · {title}")
+            print(body)
+            return
+    sys.exit(f"kotoba: §{n} not found")
+
+
+def cmd_predict(text, arg=None):
+    preds = find_predictions(text)
+    if arg is None:
+        for pid in sorted(preds, key=lambda s: (s[0], int(s[1:]))):
+            first = preds[pid].splitlines()[0]
+            print(f"{pid:<4} {first}")
+        return
+    pid = arg.upper()
+    if pid in preds:
+        print(f"{pid}  {preds[pid]}")
+        return
+    sys.exit(f"kotoba: prediction {pid!r} not found")
+
+
+def cmd_pillars(text):
+    parts = split_parts(text)
+    for title, body in parts:
+        if title.startswith("第八部"):
+            print("# " + title)
+            print(body)
+            return
+    sys.exit("kotoba: pillars not found")
+
+
+def cmd_grep(text, term, case_insensitive=False):
+    flags = re.IGNORECASE if case_insensitive else 0
+    try:
+        rx = re.compile(term, flags)
+    except re.error as e:
+        sys.exit(f"kotoba: bad regex: {e}")
+    hits = 0
+    for i, line in enumerate(text.splitlines(), 1):
+        if rx.search(line):
+            print(f"{i:>4}: {line}")
+            hits += 1
+    if not hits:
+        sys.exit(1)
+
+
+def cmd_stats(text):
+    lines = text.splitlines()
+    parts = split_parts(text)
+    secs = split_sections(text)
+    preds = find_predictions(text)
+    p_count = sum(1 for k in preds if k.startswith("P"))
+    s_count = sum(1 for k in preds if k.startswith("S"))
+    glyph_counts = {g: text.count(g) for g in GLYPHS}
+    print(f"lines     : {len(lines)}")
+    print(f"chars     : {len(text)}")
+    print(f"parts     : {len(parts)}")
+    print(f"sections  : {len(secs)} (§1..§{max(n for n, _, _ in secs) if secs else 0})")
+    print(f"P-preds   : {p_count}")
+    print(f"S-preds   : {s_count}")
+    print("glyphs    :")
+    for g, c in sorted(glyph_counts.items(), key=lambda kv: -kv[1]):
+        if c:
+            label = GLYPHS[g][0]
+            print(f"  {g}  {c:>4}  {label}")
+
+
+def cmd_scan(path):
+    text = load(path)
+    cmd_stats(text)
+    print()
+    print("parts :")
+    for title, _ in split_parts(text):
+        print("  " + title)
+
+
+def main(argv):
+    if len(argv) < 2:
+        print(HELP)
+        return 0
+    cmd = argv[1]
+    args = argv[2:]
+
+    if cmd in ("-h", "--help", "help"):
+        print(HELP)
+        return 0
+
+    if cmd == "scan":
+        cmd_scan(args[0] if args else None)
+        return 0
+
+    text = load()
+
+    if cmd == "legend":
+        cmd_legend(text)
+    elif cmd == "rings":
+        cmd_rings(text)
+    elif cmd == "glyph":
+        if not args:
+            sys.exit("kotoba: glyph requires a symbol")
+        cmd_glyph(text, args[0])
+    elif cmd == "parts":
+        cmd_parts(text)
+    elif cmd == "part":
+        if not args:
+            sys.exit("kotoba: part requires N (0-9 or end)")
+        cmd_part(text, args[0])
+    elif cmd == "sections":
+        cmd_sections(text)
+    elif cmd == "section":
+        if not args:
+            sys.exit("kotoba: section requires N")
+        cmd_section(text, args[0])
+    elif cmd == "predict":
+        cmd_predict(text, args[0] if args else None)
+    elif cmd == "pillars":
+        cmd_pillars(text)
+    elif cmd == "grep":
+        if not args:
+            sys.exit("kotoba: grep requires a term")
+        ci = "-i" in args
+        terms = [a for a in args if a != "-i"]
+        if not terms:
+            sys.exit("kotoba: grep requires a term")
+        cmd_grep(text, terms[0], case_insensitive=ci)
+    elif cmd == "stats":
+        cmd_stats(text)
+    else:
+        sys.exit(f"kotoba: unknown command {cmd!r} (try `kotoba help`)")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main(sys.argv))
