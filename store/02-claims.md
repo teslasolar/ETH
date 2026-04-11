@@ -32,49 +32,49 @@ objects).
 [
     {"id": "C001", "status": "proposed",
      "statement": "L3 to L4 routing is prediction error resolution, not a format handshake.",
-     "tests": ["P15", "P16", "P17"]},
+     "tests": ["P015", "P016", "P017"]},
 
     {"id": "C002", "status": "supported",
      "statement": "Interoception has four distinct dimensions: accuracy, sensibility, awareness, appraisal.",
      "ref": "Greenwood-Van Meerveld · Garfinkel · Annu Rev Psych 76, 2025",
-     "tests": ["P19", "P41"]},
+     "tests": ["P019", "P041"]},
 
     {"id": "C003", "status": "supported",
      "statement": "The uncinate fasciculus is the physical bandwidth channel for the L3 to L4 cable.",
      "ref": "Lebel 2012 · TransPsych 2025 meta n=289/506",
-     "tests": ["P29", "P30", "P37"]},
+     "tests": ["P029", "P030", "P037"]},
 
     {"id": "C004", "status": "proposed",
      "statement": "Heartbeat evoked potential is a measurable proxy for vagus-to-limbic bus traffic.",
-     "tests": ["P15", "P19", "P60"]},
+     "tests": ["P015", "P019", "P060"]},
 
     {"id": "C005", "status": "supported",
      "statement": "LC-NE tonic bias is the gain knob of the L2 layer.",
      "ref": "Aston-Jones · Cohen 2005",
-     "tests": ["P41", "P43", "P44"]},
+     "tests": ["P041", "P043", "P044"]},
 
     {"id": "C006", "status": "established",
      "statement": "Enterochromaffin cells form a sub-100ms synaptic boundary between lumen and vagal afferent.",
      "ref": "Kaelberer · Bohórquez 2018 · Bellono 2017",
-     "tests": ["P60", "P61"]},
+     "tests": ["P060", "P061"]},
 
     {"id": "C007", "status": "supported",
      "statement": "Anterior insula is the L3 to L4 convergence hub, parallel to the uncinate fasciculus.",
      "ref": "Craig 2002 · Bird · Cook 2013",
-     "tests": ["P64", "P65"]},
+     "tests": ["P064", "P065"]},
 
     {"id": "C008", "status": "established",
      "statement": "The cholinergic anti-inflammatory pathway closes the peripheral loop via alpha-7 nAChR on macrophages.",
      "ref": "Tracey 2002 · 2007",
-     "tests": ["P66", "P67", "P68"]},
+     "tests": ["P066", "P067", "P068"]},
 
     {"id": "C009", "status": "proposed",
      "statement": "ETH failure modes partition into a precision × gain phase space with four regions: A (ASC+alexithymia), B (CPTSD), C (ADHD+alexithymia), H (healthy).",
-     "tests": ["P31", "P32", "P46"]},
+     "tests": ["P031", "P032", "P046"]},
 
     {"id": "C010", "status": "proposed",
      "statement": "AI READ-format translation (P3b) acts simultaneously as an LC normalizer and a generative-model training scaffold for L4.",
-     "tests": ["P27", "P57", "P58"]}
+     "tests": ["P027", "P057", "P058"]}
 ]
 ```
 
