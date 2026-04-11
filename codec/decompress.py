@@ -17,6 +17,12 @@ Reads codec/kotoba.md for the token dictionary, then:
 
   --as dict      dumps the loaded kotoba dictionary (no path needed).
 
+  --validate     repo-wide integrity check. Exits 0 if the dictionary
+                 loads, every store/ file parses as JSON, and every
+                 kotoba block's unexpanded residue contains no
+                 non-whitelisted glyphs. Exits 1 with a report
+                 otherwise. Used by runtime/test_swarm.py.
+
 The decoder is intentionally stdlib only. No YAML, no markdown
 libraries, no LLMs. The file is its own implementation.
 """
@@ -139,6 +145,71 @@ def as_dict(dictionary):
     return "\n".join(f"{k}  {v}" for k, v in dictionary.items())
 
 
+# Glyph-like characters allowed to appear in kotoba blocks even
+# though they are not formal dictionary tokens (math, typography,
+# whitespace punctuation). Keeping this short is a feature.
+SAFE_GLYPHS = set("·…≥≤≠≈±∈∞°′″×~—–")
+
+
+def validate():
+    """Repo-wide integrity check. Returns (ok, list_of_problems)."""
+    problems = []
+    try:
+        dictionary = load_dict()
+    except Exception as exc:
+        return False, [f"dictionary load: {exc}"]
+    if not dictionary:
+        return False, ["dictionary is empty"]
+
+    repo = os.path.dirname(HERE)
+    known = set(dictionary.keys())
+
+    for subdir in ("store", "parts"):
+        root = os.path.join(repo, subdir)
+        if not os.path.isdir(root):
+            continue
+        for name in sorted(os.listdir(root)):
+            if not name.endswith(".md"):
+                continue
+            path = os.path.join(root, name)
+            rel = os.path.join(subdir, name)
+            try:
+                with open(path, "r", encoding="utf-8") as f:
+                    text = f.read()
+            except OSError as exc:
+                problems.append(f"{rel}: read: {exc}")
+                continue
+
+            for info, body in FENCE.findall(text):
+                # data blocks: must parse as Python literal
+                if info and info not in NON_DATA_LANGS:
+                    try:
+                        ast.literal_eval(body)
+                    except (ValueError, SyntaxError):
+                        # unknown block kinds are allowed to not be
+                        # literals; only report canonical store kinds
+                        if info in STORE_LANGS:
+                            problems.append(
+                                f"{rel}: {info}: not a Python literal"
+                            )
+                # kotoba blocks: every non-ASCII glyph must be known
+                if info == "kotoba":
+                    residue = body
+                    for tok in sorted(known, key=len, reverse=True):
+                        residue = residue.replace(tok, " ")
+                    for ch in residue:
+                        if ord(ch) < 128:
+                            continue
+                        if ch.isspace() or ch in SAFE_GLYPHS:
+                            continue
+                        problems.append(
+                            f"{rel}: kotoba: unknown glyph {ch!r}"
+                        )
+                        break  # one report per block is enough
+
+    return (not problems), problems
+
+
 def main(argv):
     ap = argparse.ArgumentParser(
         prog="decompress",
@@ -151,7 +222,20 @@ def main(argv):
         default="english",
         help="output format (default: english)",
     )
+    ap.add_argument(
+        "--validate", action="store_true",
+        help="repo-wide integrity check (exit 0 OK, 1 on failure)",
+    )
     args = ap.parse_args(argv)
+
+    if args.validate:
+        ok, problems = validate()
+        if ok:
+            print("validate: OK")
+            return 0
+        for p in problems:
+            sys.stderr.write(f"validate: {p}\n")
+        return 1
 
     dictionary = load_dict()
 
@@ -160,7 +244,7 @@ def main(argv):
         return 0
 
     if not args.path:
-        ap.error("path is required unless --as dict")
+        ap.error("path is required unless --as dict or --validate")
 
     if args.as_ == "english":
         print(as_english(args.path, dictionary))
