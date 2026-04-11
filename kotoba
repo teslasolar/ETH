@@ -6,7 +6,6 @@ import os
 import re
 import signal
 import sys
-import textwrap
 
 # allow piping into head/less without BrokenPipeError
 try:
@@ -57,6 +56,7 @@ usage :
   kotoba pillars                the 10 theory pillars (第八部)
   kotoba grep <term> [-i]       search the spec
   kotoba stats                  document stats
+  kotoba verify                 spec integrity check
   kotoba scan [FILE]            parse arbitrary kotoba doc
 
 source : prompt.md or README.md in the CLI's directory
@@ -272,6 +272,66 @@ def cmd_stats(text):
             print(f"  {g}  {c:>4}  {label}")
 
 
+EXPECTED_PARTS = [
+    "第零部", "第一部", "第二部", "第三部", "第四部",
+    "第五部", "第六部", "第七部", "第八部", "第九部", "終",
+]
+EXPECTED_SECTIONS = 52
+EXPECTED_P = 74
+EXPECTED_S = 7
+
+
+def cmd_verify(text):
+    ok = True
+
+    def mark(label, passed, detail=""):
+        nonlocal ok
+        sign = "ok  " if passed else "FAIL"
+        line = f"  [{sign}] {label}"
+        if detail:
+            line += f"  ({detail})"
+        print(line)
+        if not passed:
+            ok = False
+
+    print("kotoba verify :")
+
+    parts = split_parts(text)
+    part_titles = [t for t, _ in parts]
+    mark(
+        f"parts = {len(EXPECTED_PARTS)}",
+        len(parts) == len(EXPECTED_PARTS),
+        f"got {len(parts)}",
+    )
+    for expected in EXPECTED_PARTS:
+        found = any(t.startswith(expected) for t in part_titles)
+        mark(f"part {expected}", found)
+
+    secs = split_sections(text)
+    mark(
+        f"sections = {EXPECTED_SECTIONS}",
+        len(secs) == EXPECTED_SECTIONS,
+        f"got {len(secs)}",
+    )
+    nums = sorted(n for n, _, _ in secs)
+    gaps = [i for i in range(1, EXPECTED_SECTIONS + 1) if i not in nums]
+    mark("§1..§52 contiguous", not gaps, f"missing {gaps}" if gaps else "")
+
+    preds = find_predictions(text)
+    p_ids = {k for k in preds if k.startswith("P")}
+    s_ids = {k for k in preds if k.startswith("S")}
+    mark(f"P-preds = {EXPECTED_P}", len(p_ids) == EXPECTED_P, f"got {len(p_ids)}")
+    missing_p = [f"P{i}" for i in range(1, EXPECTED_P + 1) if f"P{i}" not in p_ids]
+    mark("P1..P74 complete", not missing_p, f"missing {missing_p}" if missing_p else "")
+    mark(f"S-preds = {EXPECTED_S}", len(s_ids) == EXPECTED_S, f"got {len(s_ids)}")
+    missing_s = [f"S{i}" for i in range(1, EXPECTED_S + 1) if f"S{i}" not in s_ids]
+    mark("S1..S7 complete", not missing_s, f"missing {missing_s}" if missing_s else "")
+
+    print()
+    print("  result :", "pass" if ok else "FAIL")
+    return 0 if ok else 1
+
+
 def cmd_scan(path):
     text = load(path)
     cmd_stats(text)
@@ -332,6 +392,8 @@ def main(argv):
         cmd_grep(text, terms[0], case_insensitive=ci)
     elif cmd == "stats":
         cmd_stats(text)
+    elif cmd == "verify":
+        return cmd_verify(text)
     else:
         sys.exit(f"kotoba: unknown command {cmd!r} (try `kotoba help`)")
     return 0

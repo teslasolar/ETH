@@ -14,6 +14,7 @@ kotoba · built-in CLI
 ./kotoba pillars         the 10 theory pillars
 ./kotoba grep -i taVNS   search the spec
 ./kotoba stats           doc stats
+./kotoba verify          spec integrity check (parts · §1-52 · P1-74 · S1-7)
 ./kotoba scan FILE       parse arbitrary kotoba doc
 
 source : prompt.md (identical to this README body)
