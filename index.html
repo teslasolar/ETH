@@ -136,6 +136,17 @@ pre{font-family:var(--mono);white-space:pre-wrap;word-wrap:break-word}
 .eth-footer{margin-top:4rem;padding-top:2rem;border-top:1px solid var(--border);
             text-align:center;color:var(--dim);font-size:0.75rem}
 
+/* ───── kotoba / english toggle ───── */
+#eth-mode-toggle{position:fixed;top:1rem;right:1rem;z-index:100;
+  background:var(--bg-raised);color:var(--fg-bright);
+  border:1px solid rgba(255,255,255,0.2);border-radius:6px;
+  padding:0.5rem 0.85rem;font-family:var(--mono);font-size:0.75rem;
+  letter-spacing:0.05em;cursor:pointer;
+  box-shadow:0 2px 8px rgba(0,0,0,0.4)}
+#eth-mode-toggle:hover{border-color:var(--r2);color:var(--r2)}
+body.-english #eth-mode-toggle{border-color:var(--r2);color:var(--r2)}
+body.-english .eth-glyph[data-english]{color:var(--dim);font-style:italic;font-size:0.72rem;letter-spacing:0.02em}
+
 /* ───── id highlight target ───── */
 [id^="C0"],[id^="P0"],[id^="M0"],[id^="I0"],[id^="R0"],[id^="L0"],[id^="S0"]{scroll-margin-top:1rem}
 .eth-highlight{animation:eth-pulse 1.2s ease-out 1}
@@ -3272,6 +3283,99 @@ document.addEventListener('DOMContentLoaded', () => {
 /* Expose registry for debugging and for exporting to an actual
    Ignition Perspective view definition. */
 window.ETH = {UDT, VIEW_DEF, STORE, PAPER_DATA, PAPERS_META, SWARM_DATA, navigateTo};
+</script>
+
+<script>
+/* ─────────────────────────────────────────────────────────────
+   Kotoba ⇌ English toggle
+   · dictionary mirrors codec/kotoba.md
+   · x and ~ intentionally excluded (collide with math / prose)
+   · expandKotoba() walks a regex alternation, longest-first
+   ───────────────────────────────────────────────────────────── */
+(function(){
+ const KOTOBA_DICT = {
+  '●':'L0 GROUND · body · gut · ENS',
+  '⬛':'L1 SIGNAL · PNS · sensor',
+  '〜':'L2 BUS · vagus',
+  '┃':'L2 GATE',
+  '♡':'L3 AFFECT · limbic',
+  '△':'L4 FORGE · PFC',
+  '◐':'L5 IDENTITY',
+  '◯':'L5 OBSERVER',
+  '⊥':'is orthogonal to',
+  '⇔':'is bidirectional with',
+  '↑':'up',
+  '↓':'down',
+  '→':'routes to',
+  '←':'receives from',
+ };
+ const toks = Object.keys(KOTOBA_DICT).sort((a,b)=>b.length-a.length);
+ const re = new RegExp(toks.map(t=>t.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')).join('|'),'g');
+ const expandKotoba = (txt) => !txt ? txt : txt.replace(re, m => '['+KOTOBA_DICT[m]+']');
+ window.expandKotoba = expandKotoba;
+
+ /* collect elements whose textContent should transform under english-mode */
+ function collectTargets() {
+  const sel = [
+   'pre.prose',                                 // paper prose
+   '.eth-paper-panel .glyphs',                  // paper-card glyph lines
+   '.eth-paper-panel .desc',                    // paper descriptions
+   '.eth-sigil',                                // header sigil
+   '.eth-row .-statement',                      // store row statements
+   '.data-section pre',                         // paper-local data blocks
+  ];
+  return document.querySelectorAll(sel.join(','));
+ }
+
+ /* one-shot capture: store original kotoba text in data-kotoba-original
+    on first toggle. subsequent toggles read from the captured original. */
+ function applyMode(english) {
+  collectTargets().forEach(el => {
+   if (!el.dataset.kotobaOriginal) el.dataset.kotobaOriginal = el.textContent;
+   el.textContent = english ? expandKotoba(el.dataset.kotobaOriginal) : el.dataset.kotobaOriginal;
+  });
+ }
+
+ function toggle() {
+  const english = document.body.classList.toggle('-english');
+  document.getElementById('eth-mode-toggle').textContent =
+    english ? '⇦ back to kotoba' : 'kotoba ⇨ english';
+  applyMode(english);
+ }
+
+ function createButton() {
+  const btn = document.createElement('button');
+  btn.id = 'eth-mode-toggle';
+  btn.textContent = 'kotoba ⇨ english';
+  btn.title = 'Expand every token into its plain-English reading. '
+            + 'Re-click to restore the kotoba form.';
+  btn.addEventListener('click', toggle);
+  document.body.appendChild(btn);
+ }
+
+ /* boot: slight delay so the main view has rendered first */
+ const go = () => setTimeout(createButton, 50);
+ if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', go);
+ } else {
+  go();
+ }
+
+ /* paper prose is lazy-fetched on click. when a pre.prose gets loaded
+    after the toggle has already been flipped, re-apply the mode so
+    the newly-arrived text expands consistently. */
+ new MutationObserver(muts => {
+  const english = document.body.classList.contains('-english');
+  if (!english) return;
+  for (const m of muts) {
+   if (m.target.matches?.('pre.prose') && m.target.dataset.loaded === 'true'
+       && !m.target.dataset.kotobaOriginal) {
+    m.target.dataset.kotobaOriginal = m.target.textContent;
+    m.target.textContent = expandKotoba(m.target.dataset.kotobaOriginal);
+   }
+  }
+ }).observe(document.body, {childList:true, subtree:true, characterData:true});
+})();
 </script>
 
 
