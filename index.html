@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ETH · Enteric Translation Hypothesis · Frumkin 2026</title>
+<style>
+:root {
+  --bg: #0a0a0f;
+  --fg: #e0e0e0;
+  --dim: #888;
+  --r0: #993366;
+  --r1: #00aadd;
+  --r2: #ffaa00;
+  --r3: #ff4444;
+  --r4: #44aa44;
+  --r5: #aa44ff;
+  --r6: #ffffff;
+  --mono: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', 'Menlo', monospace;
+  --serif: 'Georgia', 'Palatino', serif;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--mono);
+  font-size: 14px;
+  line-height: 1.6;
+  padding: 2rem;
+  max-width: 960px;
+  margin: 0 auto;
+}
+h1 {
+  font-size: 1.8rem;
+  font-weight: 400;
+  letter-spacing: 0.05em;
+  margin-bottom: 0.25rem;
+}
+.subtitle {
+  color: var(--dim);
+  font-size: 0.9rem;
+  margin-bottom: 2rem;
+}
+.sigil {
+  font-size: 1.4rem;
+  letter-spacing: 0.3em;
+  margin-bottom: 3rem;
+  color: var(--dim);
+}
+.ring-bar {
+  display: flex;
+  gap: 2px;
+  margin-bottom: 3rem;
+  height: 4px;
+}
+.ring-bar span {
+  flex: 1;
+  border-radius: 2px;
+}
+
+/* paper cards */
+.papers { display: flex; flex-direction: column; gap: 1.5rem; }
+.paper {
+  border-left: 3px solid var(--dim);
+  padding: 1rem 1.5rem;
+  background: rgba(255,255,255,0.02);
+  border-radius: 0 6px 6px 0;
+  cursor: pointer;
+  transition: border-color 0.2s, background 0.2s;
+}
+.paper:hover { background: rgba(255,255,255,0.05); }
+.paper.active { background: rgba(255,255,255,0.04); }
+.paper .num {
+  font-size: 0.75rem;
+  color: var(--dim);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+.paper .title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin: 0.25rem 0;
+}
+.paper .desc {
+  font-family: var(--serif);
+  font-size: 0.9rem;
+  color: var(--dim);
+  line-height: 1.5;
+}
+.paper .meta {
+  margin-top: 0.5rem;
+  font-size: 0.75rem;
+  color: var(--dim);
+}
+.paper .meta .glyph { font-size: 1rem; margin-right: 0.25rem; }
+.paper .layers {
+  display: inline-flex;
+  gap: 4px;
+  margin-left: 0.5rem;
+}
+.paper .layers .dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+/* content panel */
+.content-panel {
+  display: none;
+  margin-top: 0.75rem;
+  padding: 1rem;
+  background: rgba(0,0,0,0.3);
+  border-radius: 4px;
+  font-size: 0.85rem;
+  line-height: 1.7;
+  white-space: pre-wrap;
+  font-family: var(--mono);
+  max-height: 60vh;
+  overflow-y: auto;
+}
+.content-panel.visible { display: block; }
+
+/* store section */
+.store-section {
+  margin-top: 3rem;
+  padding-top: 2rem;
+  border-top: 1px solid rgba(255,255,255,0.1);
+}
+.store-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 1rem;
+  margin-top: 1rem;
+}
+.store-card {
+  padding: 0.75rem 1rem;
+  background: rgba(255,255,255,0.03);
+  border-radius: 4px;
+  border-left: 2px solid var(--dim);
+}
+.store-card .count { font-size: 1.4rem; font-weight: 600; }
+.store-card .label { font-size: 0.75rem; color: var(--dim); }
+
+/* swarm status */
+.swarm-status {
+  margin-top: 3rem;
+  padding: 1rem;
+  background: rgba(68, 170, 68, 0.08);
+  border: 1px solid rgba(68, 170, 68, 0.2);
+  border-radius: 6px;
+  font-size: 0.85rem;
+}
+.swarm-status .pass { color: var(--r4); font-weight: 600; }
+
+/* footer */
+.footer {
+  margin-top: 4rem;
+  padding-top: 2rem;
+  border-top: 1px solid rgba(255,255,255,0.1);
+  text-align: center;
+  color: var(--dim);
+  font-size: 0.8rem;
+}
+</style>
+</head>
+<body>
+
+<h1>ETH · 腸 Factory</h1>
+<div class="subtitle">Enteric Translation Hypothesis · Frumkin · 2026 · v1 + v2 + v3 + v4 + v5</div>
+<div class="sigil">● ⬛ 〜 ♡ △ ◐ ◯</div>
+
+<div class="ring-bar">
+  <span style="background:var(--r0)"></span>
+  <span style="background:var(--r1)"></span>
+  <span style="background:var(--r2)"></span>
+  <span style="background:var(--r3)"></span>
+  <span style="background:var(--r4)"></span>
+  <span style="background:var(--r5)"></span>
+  <span style="background:var(--r6)"></span>
+</div>
+
+<div class="papers" id="papers"></div>
+
+<div class="store-section">
+  <h2 style="font-size:1rem; font-weight:400; letter-spacing:0.05em;">Store · Object Graph</h2>
+  <div class="store-grid">
+    <div class="store-card" style="border-color:var(--r0)"><div class="count">6</div><div class="label">layers</div></div>
+    <div class="store-card" style="border-color:var(--r3)"><div class="count">10</div><div class="label">claims</div></div>
+    <div class="store-card" style="border-color:var(--r4)"><div class="count">81</div><div class="label">predictions</div></div>
+    <div class="store-card" style="border-color:var(--r2)"><div class="count">33</div><div class="label">metrics</div></div>
+    <div class="store-card" style="border-color:var(--r1)"><div class="count">18</div><div class="label">interventions</div></div>
+    <div class="store-card" style="border-color:var(--r5)"><div class="count">26</div><div class="label">references</div></div>
+  </div>
+  <div style="margin-top:1rem; font-size:0.8rem; color:var(--dim);">174 objects · 196 cross-references · zero dangling</div>
+</div>
+
+<div class="swarm-status">
+  <span class="pass">141 / 141 PASS</span> · 11 swarm runners · primes 11 and 31 · the writing is the test
+</div>
+
+<div class="footer">
+  📐🦆 · the enterprise doesn't stop · it routes · now the routes have voltmeters<br>
+  <span style="font-size:0.7rem; margin-top:0.5rem; display:inline-block;">
+    codec/decompress.py --validate · runtime/test_swarm_*.py · stdlib only · no deps
+  </span>
+</div>
+
+<script>
+const papers = [
+  { num: "I", title: "Foundation", file: "parts/I-foundation.md",
+    desc: "The ISA-95 skeleton. Six layers, five pathways, PACK-ML states on affect. The core claim: gut symptoms are the downstream dump of affect the cortex could not label.",
+    color: "--r6", layers: [0,1,2,3,4,5], per: 4, cen: 2 },
+  { num: "II", title: "Predictive Coding", file: "parts/II-predictive-coding.md",
+    desc: "Active inference reframe. L3→L4 is prediction-error resolution, not a handshake. Alexithymia is an under-fit generative model. Ships the four-mode phase space (A/B/C/H).",
+    color: "--r4", layers: [1,2,3,4], per: 7, cen: 6 },
+  { num: "III", title: "Physical Cables", file: "parts/III-physical-cables.md",
+    desc: "Two parallel substrates: uncinate fasciculus (limbic-affective tract) and anterior insula gradient (interoceptive hub). HEP as cortical readout. Three cables as structured data.",
+    color: "--r3", layers: [1,2,3,4], per: 7, cen: 6 },
+  { num: "IV", title: "The Gain Knob", file: "parts/IV-gain-knob.md",
+    desc: "LC-NE adaptive gain. Tonic vs phasic. BPS and SEPR as knob readings. The gut-LC-PFC closed triangle. READ/WRITE × LC binding. Four named knob states.",
+    color: "--r2", layers: [0,1,2,3,4], per: 14, cen: 4 },
+  { num: "V", title: "Molecular Boundary", file: "parts/V-molecular-boundary.md",
+    desc: "EC neuropod cells, Piezo2 mechanosensor, 5-HT3R vagal synapse under 100ms. CAP closes the loop. The L0/L1 boundary is a circuit, not an actuator.",
+    color: "--r0", layers: [0,1,2,3,4], per: 17, cen: 2 },
+  { num: "VI", title: "Interventions", file: "parts/VI-interventions.md",
+    desc: "Five pathways, mode-treatment map, Paper VIII phase stack. Which intervention for which mode. Three loop cut points. Super-additive thesis.",
+    color: "--r1", layers: [0,1,2,3,4,5], per: 10, cen: 11 },
+  { num: "VII", title: "Predictions", file: "parts/VII-predictions.md",
+    desc: "81 predictions in four falsification tiers. Tier 1 kills the theory. Tier 2 kills the mode-split. Tier 3 recalibrates. Tier 4 redesigns the self-protocol.",
+    color: "--r5", layers: [0,1,2,3,4,5], per: 14, cen: 8 },
+  { num: "VIII", title: "Self Protocol", file: "parts/VIII-self-protocol.md",
+    desc: "N=1. Five ABCDE phases, 70 days. Wearable HRV, phone-camera pupils, GI diary. Operational tomorrow. The subject is willing. The instruments are owned.",
+    color: "--r4", layers: [0,1,2,3,4,5], per: 13, cen: 6 },
+  { num: "IX", title: "Synthesis", file: "parts/IX-synthesis.md",
+    desc: "L5 enters. The observer is the layer that decides whether the work order was Complete. The repo is a compiled gut. The theory is a fixed point.",
+    color: "--r6", layers: [0,1,2,3,4,5], per: 10, cen: 22 },
+];
+
+const layerColors = ['--r0','--r1','--r2','--r3','--r4','--r5','--r6'];
+const layerGlyphs = ['●','⬛','〜','♡','△','◐','◯'];
+
+const container = document.getElementById('papers');
+
+papers.forEach((p, i) => {
+  const card = document.createElement('div');
+  card.className = 'paper';
+  card.style.borderColor = `var(${p.color})`;
+
+  const dots = p.layers.map(l =>
+    `<span class="dot" style="background:var(${layerColors[l]})" title="L${l} ${layerGlyphs[l]}"></span>`
+  ).join('');
+
+  card.innerHTML = `
+    <div class="num">Paper ${p.num}</div>
+    <div class="title" style="color:var(${p.color})">${p.title}</div>
+    <div class="desc">${p.desc}</div>
+    <div class="meta">
+      <span class="glyph">${p.layers.map(l => layerGlyphs[l]).join(' ')}</span>
+      <span class="layers">${dots}</span>
+      <span style="margin-left:1rem">${p.per}:${p.cen} per:cen</span>
+    </div>
+    <div class="content-panel" id="content-${i}">loading...</div>
+  `;
+
+  card.addEventListener('click', async () => {
+    const panel = document.getElementById('content-' + i);
+    if (panel.classList.contains('visible')) {
+      panel.classList.remove('visible');
+      card.classList.remove('active');
+      return;
+    }
+    // close others
+    document.querySelectorAll('.content-panel.visible').forEach(el => {
+      el.classList.remove('visible');
+      el.parentElement.classList.remove('active');
+    });
+    // load content
+    if (panel.dataset.loaded !== 'true') {
+      try {
+        const resp = await fetch(p.file);
+        if (resp.ok) {
+          panel.textContent = await resp.text();
+        } else {
+          panel.textContent = '(file not found — serve this directory with a local HTTP server)';
+        }
+      } catch(e) {
+        panel.textContent = '(fetch failed — open with: python3 -m http.server)';
+      }
+      panel.dataset.loaded = 'true';
+    }
+    panel.classList.add('visible');
+    card.classList.add('active');
+  });
+
+  container.appendChild(card);
+});
+</script>
+
+</body>
+</html>
