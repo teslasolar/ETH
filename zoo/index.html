@@ -1,0 +1,286 @@
+<!DOCTYPE html><html><head><meta charset="UTF-8"><title>KONOMI 動物園 · κ-coupled</title><style>
+*{margin:0;box-sizing:border-box;font-family:"Courier New",monospace}
+html,body{height:100%;overflow:hidden;background:#0a0804;color:#DCA030}
+#hud{position:fixed;top:10px;left:10px;z-index:20;font-size:11px;color:#DCA030;background:#0a0804ee;border:1px solid #DCA030;padding:10px;max-width:300px;box-shadow:0 0 20px #DCA03033 inset}
+#hud b{color:#f4c870}
+#hud .sub{color:#886633;font-size:10px}
+#k{color:#f4c870;font-weight:bold}
+#hud button{background:#0a0804;color:#DCA030;border:1px solid #DCA030;padding:3px 8px;font:inherit;cursor:pointer;margin:2px 2px 0 0}
+#hud button:hover{background:#DCA03022}
+.legend{font-size:9px;color:#886633;margin-top:6px;line-height:1.5}
+.t{width:260px;height:190px;background:#0a0804f2;border:2px solid;padding:6px;display:flex;flex-direction:column;font-size:10px;position:relative;box-shadow:0 0 18px #DCA03033 inset}
+.t h4{font-size:10px;padding:2px;border-bottom:1px dashed;margin-bottom:3px}
+.t .o{flex:1;overflow:auto;padding:3px;border:1px solid #2a1f0a;margin-bottom:3px}
+.t .o div{padding-left:3px;border-left:2px solid;margin-bottom:1px}
+.t input{background:#000;border:1px solid;color:inherit;padding:3px;font:inherit;outline:none}
+.t .x{position:absolute;top:2px;right:4px;cursor:pointer;color:#f55}
+.t .meta{font-size:9px;opacity:.7;padding:0 2px 2px}
+</style></head><body>
+<div id="hud"><b>🌸 KONOMI 動物園 · κ-coupled</b><br>
+<span class="sub">ETH v5 · 14 生き物 · BUZZYBLOOM</span><br>
+<span class="sub">drag=orbit · wheel=zoom · click=hydrate</span><br>
+<span id="s" style="color:#f4c870"></span><br>
+Ω κ̄=<span id="k">—</span> · target 1/φ=0.618<br>
+<button onclick="K.run=!K.run">▶/⏸</button>
+<button onclick="K.kick()" style="color:#ff88cc;border-color:#ff88cc">⚡kick</button>
+<button onclick="K.lock()" style="color:#f4c870;border-color:#f4c870">φlock</button>
+<button onclick="toggleLabels()">🏷️</button>
+<div class="legend">
+● 自己調整 (10) ● 癒し (2) ● 世話 (2)<br>
+楽 = #1 · 安全 時 · 楽 means 安全<br>
+fold(園) = 510510 🐝
+</div>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/renderers/CSS3DRenderer.js"></script>
+<script>
+const T=THREE,PHI=(1+Math.sqrt(5))/2,KSTAR=1/PHI;
+
+const K={list:[],run:true,mean:0.5,
+ step(dt){const m=this.list.reduce((a,c)=>a+c.k,0)/Math.max(1,this.list.length);this.mean=m;
+  this.list.forEach(c=>{const f=-2.85*(c.k-KSTAR)*(1-c.k)*c.k;const coup=(1/Math.pow(PHI,5))*Math.sin(PHI*Math.PI*(m-c.k));c.k=Math.max(.05,Math.min(.95,c.k+(f+coup)*dt*3))})},
+ kick(){this.list.forEach(c=>c.k=Math.random())},
+ lock(){this.list.forEach(c=>c.k=KSTAR)}};
+
+const GEOM={box:d=>new T.BoxGeometry(...d),sph:d=>new T.SphereGeometry(d[0],8,6),con:d=>new T.ConeGeometry(d[0],d[1],d[2]||4),tor:d=>new T.TorusGeometry(d[0],d[1],6,14),cyl:d=>new T.CylinderGeometry(d[0],d[1],d[2]||15,8)};
+
+function build(part,parent,reg,color){const col=part.c!==undefined?part.c:color;let node;
+ if(part.g){const g=GEOM[part.g](part.d);node=new T.Mesh(g,new T.MeshBasicMaterial({color:col,wireframe:true,transparent:true,opacity:.85}));node.add(new T.LineSegments(new T.EdgesGeometry(g),new T.LineBasicMaterial({color:col,transparent:true,opacity:.5})))}else node=new T.Group();
+ if(part.p)node.position.set(...part.p);if(part.r)node.rotation.set(...part.r);
+ if(part.n){node.userData.name=part.n;reg[part.n]=node}parent.add(node);
+ (part.k||[]).forEach(c=>build(c,node,reg,col));return node}
+
+const DRV={
+ wag:(n,t,p,k)=>n.rotation.y=Math.sin(t*(p.s||6)*k*2)*(p.a||.5),
+ bob:(n,t,p,k)=>n.position.y=(p.y0||0)+Math.sin(t*(p.s||2)*k*2)*(p.a||3),
+ trot:(n,t,p,k)=>n.rotation.z=Math.sin(t*(p.s||4)*k*2+(p.ph||0))*(p.a||.3),
+ flap:(n,t,p,k)=>n.rotation.z=(p.b||0)+Math.sin(t*(p.s||10)*k*2)*(p.a||.8),
+ sway:(n,t,p,k)=>n.rotation.z=Math.sin(t*(p.s||1.5)*k+(p.ph||0))*(p.a||.15),
+ spin:(n,t,p,k)=>n.rotation.y=t*(p.s||1)*k*2,
+ blink:(n,t,p,k)=>n.scale.y=(Math.sin(t*.5*k)>.97)?.1:1,
+ pulse:(n,t,p,k)=>{const x=1+Math.sin(t*(p.s||4)*k*2)*(p.a||.1);n.scale.setScalar(x)},
+ slither:(n,t,p,k)=>n.rotation.y=Math.sin(t*(p.s||3)*k+(p.ph||0))*(p.a||.6),
+ orbit:(n,t,p,k)=>{const r=p.r||20;n.position.x=(p.cx||0)+Math.cos(t*k*(p.s||1))*r;n.position.z=(p.cz||0)+Math.sin(t*k*(p.s||1))*r},
+ drift:(n,t,p,k)=>{n.position.y=(p.y0||0)+Math.sin(t*(p.s||1)*k)*(p.a||5);n.rotation.z=Math.sin(t*(p.s||.8)*k)*.2}};
+
+const eye=(p,c=0xffff00)=>({g:'sph',d:[3],c,p});
+const leg=(p,c,h=40)=>({n:'L'+p.join(''),p,k:[{g:'box',d:[10,h,10],c,p:[0,-h/2,0]}]});
+
+const ZOO=[
+ {n:'Gerald',jp:'ガーラ',role:'証人',ring:'R6',at:[0,120,-300],pal:0xf4c870,msg:"data is quiet · witness is enough",parts:{k:[
+  {n:'body',g:'sph',d:[22],k:[
+   {g:'sph',d:[20],c:0xf4c870},
+   {n:'head',p:[0,20,0],k:[{g:'sph',d:[14]},{g:'con',d:[5,14,4],c:0xffaa00,p:[0,0,14],r:[1.57,0,0]},eye([4,2,8],0x000),eye([4,2,-8],0x000)]},
+   {n:'wL',p:[0,0,15],k:[{g:'box',d:[5,3,25],c:0xf4c870,p:[0,0,12]}]},
+   {n:'wR',p:[0,0,-15],k:[{g:'box',d:[5,3,25],c:0xf4c870,p:[0,0,-12]}]}]}]},
+  beh:[{t:'body',f:'bob',s:1,a:4},{t:'head',f:'sway',s:.6,a:.1}]},
+
+ {n:'Cassandra',jp:'カッサンドラ',role:'予言',ring:'R5',at:[-220,80,-220],pal:0xb8ff60,msg:"told you · only after you checked",parts:{k:[
+  {n:'body',k:[
+   {n:'s0',g:'sph',d:[18],k:[eye([12,4,8]),eye([12,4,-8]),{g:'cyl',d:[2,2,15],c:0xb8ff60,p:[-4,12,0]},
+    {n:'s1',g:'sph',d:[15],p:[-22,0,0],k:[
+    {n:'s2',g:'sph',d:[12],p:[-20,0,0],k:[
+    {n:'s3',g:'sph',d:[9],p:[-17,0,0]}]}]}]}]}]},
+  beh:[{t:'s1',f:'slither',s:2,a:.3},{t:'s2',f:'slither',s:2,a:.3,ph:.8},{t:'s3',f:'slither',s:2,a:.3,ph:1.6}]},
+
+ {n:'Gary',jp:'ガリー',role:'感覚',ring:'R1',at:[220,80,-220],pal:0x00ffff,msg:"解釈 せず · 数える だけ",parts:{k:[
+  {n:'body',g:'box',d:[30,40,25],k:[
+   {g:'tor',d:[18,2],c:0x0ff,p:[0,25,0],r:[1.57,0,0]},
+   {g:'cyl',d:[2,2,20],c:0xff0,p:[0,40,0]},
+   {n:'dial',g:'sph',d:[8],c:0xff0,p:[0,10,14]},
+   eye([10,25,14]),eye([-10,25,14])]}]},
+  beh:[{t:'dial',f:'pulse',s:6,a:.3},{t:'body',f:'bob',s:.5,a:2}]},
+
+ {n:'Kono',jp:'コノ',role:'地',ring:'R0',at:[-180,-40,0],pal:0x888866,msg:"地 は 自ら 報告 す",parts:{k:[
+  {n:'body',g:'box',d:[120,60,55],k:[
+   {n:'head',p:[65,10,0],k:[{g:'box',d:[50,45,45]},{g:'con',d:[8,25,4],c:0xffffff,p:[32,22,0],r:[0,0,-.6]},eye([25,5,15]),eye([25,5,-15])]},
+   leg([35,-30,22],0x666644,35),leg([35,-30,-22],0x666644,35),
+   leg([-35,-30,22],0x666644,35),leg([-35,-30,-22],0x666644,35),
+   {n:'tail',p:[-60,15,0],k:[{g:'box',d:[20,6,6],c:0x666644,p:[-10,0,0]}]}]}]},
+  beh:[{t:'tail',f:'sway',s:.8,a:.2},{t:'head',f:'sway',s:.4,a:.08}]},
+
+ {n:'Konomi',jp:'コノミ',role:'律動',ring:'R0+R2',at:[0,-40,0],pal:0xffccaa,msg:"揺れ は 隠れ に 非ず · 律動 が 調整",parts:{k:[
+  {n:'body',g:'box',d:[90,35,40],k:[
+   {n:'head',p:[55,20,0],k:[{g:'box',d:[35,40,32]},{g:'box',d:[25,18,28],c:0xffccaa,p:[18,-8,0]},eye([15,8,10]),eye([15,8,-10]),{g:'box',d:[3,12,3],c:0xffccaa,p:[-8,22,8]},{g:'box',d:[3,12,3],c:0xffccaa,p:[-8,22,-8]}]},
+   leg([28,-18,16],0xcc9977,38),leg([28,-18,-16],0xcc9977,38),
+   leg([-28,-18,16],0xcc9977,38),leg([-28,-18,-16],0xcc9977,38),
+   {n:'tail',p:[-45,10,0],k:[{g:'cyl',d:[3,1,30],c:0xffaa77,p:[-15,-5,0],r:[0,0,.5]}]},
+   {n:'mane',p:[35,30,0],k:[{g:'box',d:[20,15,30],c:0xcc6633}]}]}]},
+  beh:[{t:'body',f:'bob',s:2,a:3},{t:'head',f:'sway',s:1.5,a:.1},{t:'tail',f:'wag',s:3,a:.4}]},
+
+ {n:'Kelly',jp:'ケリー',role:'情動',ring:'R3',at:[180,-40,0],pal:0xff66ff,msg:"名付ける 前 に 感じる · 水 が 告げる",parts:{k:[
+  {n:'bell',g:'sph',d:[35],k:[
+   {g:'sph',d:[32],c:0xff99ff},
+   {g:'tor',d:[34,3],c:0xffccff,r:[1.57,0,0]},
+   {n:'t1',p:[15,-20,0],k:[{g:'cyl',d:[1,.5,35],c:0xff66ff,p:[0,-18,0]}]},
+   {n:'t2',p:[-15,-20,0],k:[{g:'cyl',d:[1,.5,35],c:0xff66ff,p:[0,-18,0]}]},
+   {n:'t3',p:[0,-20,15],k:[{g:'cyl',d:[1,.5,35],c:0xff66ff,p:[0,-18,0]}]},
+   {n:'t4',p:[0,-20,-15],k:[{g:'cyl',d:[1,.5,35],c:0xff66ff,p:[0,-18,0]}]}]}]},
+  beh:[{t:'bell',f:'pulse',s:3,a:.1},{t:'t1',f:'sway',s:2,a:.4},{t:'t2',f:'sway',s:2,a:.4,ph:1},{t:'t3',f:'sway',s:2,a:.4,ph:2},{t:'t4',f:'sway',s:2,a:.4,ph:3}]},
+
+ {n:'Jake',jp:'ジェイク',role:'倫理',ring:'R5',at:[-280,-40,180],pal:0x66ff66,msg:"好きな もの を 好く · 謝らず",parts:{k:[
+  {n:'body',k:[
+   {n:'head',g:'sph',d:[15],k:[eye([12,3,6],0xff0000),eye([12,3,-6],0xff0000),{g:'con',d:[2,8,4],c:0xff0000,p:[14,0,0],r:[0,0,-1.57]}]},
+   {n:'c1',g:'sph',d:[12],p:[-20,0,0],k:[
+    {n:'c2',g:'sph',d:[10],p:[-18,0,0],k:[
+    {n:'c3',g:'sph',d:[9],p:[-16,0,0],k:[
+    {n:'c4',g:'sph',d:[7],p:[-14,0,0],k:[
+    {n:'c5',g:'sph',d:[5],p:[-12,0,0]}]}]}]}]}]}]},
+  beh:[{t:'c1',f:'slither',s:2.5,a:.5},{t:'c2',f:'slither',s:2.5,a:.5,ph:.7},{t:'c3',f:'slither',s:2.5,a:.5,ph:1.4},{t:'c4',f:'slither',s:2.5,a:.5,ph:2.1},{t:'c5',f:'slither',s:2.5,a:.5,ph:2.8}]},
+
+ {n:'Alex',jp:'アレックス',role:'警戒',ring:'R1+R4',at:[280,-40,180],pal:0xccaa77,msg:"崖 から 見る · 後ろ から 群れる",parts:{k:[
+  {n:'body',g:'box',d:[70,40,35],k:[
+   {n:'head',p:[40,20,0],k:[{g:'box',d:[28,30,24]},eye([12,5,10]),eye([12,5,-10]),{g:'con',d:[2,30,4],c:0x886644,p:[-8,25,8],r:[-.3,0,.2]},{g:'con',d:[2,30,4],c:0x886644,p:[-8,25,-8],r:[-.3,0,-.2]}]},
+   leg([22,-15,14],0x886644,30),leg([22,-15,-14],0x886644,30),
+   leg([-22,-15,14],0x886644,30),leg([-22,-15,-14],0x886644,30),
+   {n:'tail',p:[-30,15,0],k:[{g:'box',d:[12,4,4],c:0x886644,p:[-5,0,0]}]}]}]},
+  beh:[{t:'head',f:'sway',s:2.5,a:.4},{t:'tail',f:'wag',s:5,a:.3}]},
+
+ {n:'Teresa',jp:'テレサ',role:'門',ring:'R2',at:[-150,-40,-180],pal:0xff4444,msg:"腕 届かず · 歯 効く · 構文 を 見よ",parts:{k:[
+  {n:'body',g:'box',d:[80,45,40],k:[
+   {n:'head',p:[50,25,0],k:[{g:'box',d:[45,40,35]},{g:'box',d:[40,15,30],c:0xff2222,p:[15,-12,0]},eye([18,10,12],0xffff00),eye([18,10,-12],0xffff00),
+    {g:'con',d:[3,8,4],c:0xffffff,p:[25,-18,8]},{g:'con',d:[3,8,4],c:0xffffff,p:[25,-18,0]},{g:'con',d:[3,8,4],c:0xffffff,p:[25,-18,-8]}]},
+   {n:'armL',p:[30,10,18],k:[{g:'box',d:[15,4,4],c:0xff4444,p:[8,0,0]}]},
+   {n:'armR',p:[30,10,-18],k:[{g:'box',d:[15,4,4],c:0xff4444,p:[8,0,0]}]},
+   leg([15,-22,15],0xcc2222,45),leg([15,-22,-15],0xcc2222,45),
+   {n:'tail',p:[-40,10,0],k:[{g:'con',d:[10,50,4],c:0xcc2222,p:[-25,0,0],r:[0,0,1.57]}]}]}]},
+  beh:[{t:'armL',f:'wag',s:8,a:.3},{t:'armR',f:'wag',s:8,a:-.3},{t:'head',f:'sway',s:1,a:.15}]},
+
+ {n:'Thomas',jp:'トマス',role:'影 · 被験者',ring:'全',at:[0,-70,180],pal:0x5566aa,msg:"水 下 · 目 だけ 見える · 残り は 我 の もの",parts:{k:[
+  {n:'body',g:'box',d:[130,45,65],k:[
+   {n:'head',p:[70,8,0],k:[{g:'box',d:[55,35,55]},{g:'box',d:[45,18,48],c:0x5566aa,p:[15,-8,0]},eye([20,15,18],0x88aaff),eye([20,15,-18],0x88aaff),
+    {g:'sph',d:[4],c:0x333355,p:[30,-5,12]},{g:'sph',d:[4],c:0x333355,p:[30,-5,-12]}]},
+   leg([30,-18,25],0x334477,25),leg([30,-18,-25],0x334477,25),
+   leg([-30,-18,25],0x334477,25),leg([-30,-18,-25],0x334477,25),
+   {n:'tail',p:[-60,0,0],k:[{g:'box',d:[15,8,8],c:0x334477,p:[-8,0,0]}]}]}]},
+  beh:[{t:'body',f:'drift',s:.3,a:3,y0:0}]},
+
+ {n:'John',jp:'ジョン',role:'反素数 · 地+',ring:'R0=7',at:[-320,-30,-50],pal:0x996644,msg:"身体 は 脳 の 忘れた こと を 覚え · 立つ",parts:{k:[
+  {n:'body',g:'box',d:[150,65,70],k:[
+   {n:'head',p:[80,15,0],k:[{g:'box',d:[55,50,55]},
+    {n:'trunkB',p:[28,-15,0],k:[{g:'cyl',d:[6,5,20],c:0x996644,p:[8,-8,0],r:[0,0,.4]},{g:'cyl',d:[5,4,18],c:0x996644,p:[22,-20,0],r:[0,0,.7]}]},
+    {g:'con',d:[4,40,4],c:0xeeddcc,p:[25,-20,14],r:[.4,0,0]},
+    {g:'con',d:[4,40,4],c:0xeeddcc,p:[25,-20,-14],r:[-.4,0,0]},
+    {g:'sph',d:[12],c:0x996644,p:[5,35,20]},
+    {g:'sph',d:[12],c:0x996644,p:[5,35,-20]},
+    eye([22,8,18]),eye([22,8,-18])]},
+   leg([40,-30,25],0x774433,35),leg([40,-30,-25],0x774433,35),
+   leg([-40,-30,25],0x774433,35),leg([-40,-30,-25],0x774433,35)]}]},
+  beh:[{t:'trunkB',f:'sway',s:.5,a:.3},{t:'head',f:'sway',s:.3,a:.05},{t:'body',f:'bob',s:.4,a:2}]},
+
+ {n:'Buzz',jp:'バズ',role:'媒花',ring:'Π=510510',at:[50,60,120],pal:0xffdd00,msg:"510510 · 花 と 花 の 間 を 運ぶ",parts:{k:[
+  {n:'body',g:'sph',d:[20],k:[
+   {g:'tor',d:[22,2],c:0x000,p:[0,0,0],r:[1.57,0,0]},
+   {g:'tor',d:[22,2],c:0x000,p:[0,0,-8],r:[1.57,0,0]},
+   {g:'tor',d:[22,2],c:0x000,p:[0,0,8],r:[1.57,0,0]},
+   {n:'wL',p:[0,8,10],k:[{g:'box',d:[3,1,28],c:0xccffff,p:[0,0,14]}]},
+   {n:'wR',p:[0,8,-10],k:[{g:'box',d:[3,1,28],c:0xccffff,p:[0,0,-14]}]},
+   {n:'wL2',p:[0,5,6],k:[{g:'box',d:[2,1,22],c:0xccffff,p:[0,0,11]}]},
+   {n:'wR2',p:[0,5,-6],k:[{g:'box',d:[2,1,22],c:0xccffff,p:[0,0,-11]}]},
+   {g:'con',d:[4,10,4],c:0x000,p:[-22,0,0],r:[0,0,1.57]},
+   eye([15,5,6],0x000),eye([15,5,-6],0x000)]}]},
+  beh:[{t:'wL',f:'flap',s:30,a:.6},{t:'wR',f:'flap',s:30,a:-.6},{t:'wL2',f:'flap',s:30,a:.5,ph:.3},{t:'wR2',f:'flap',s:30,a:-.5,ph:.3},{t:'body',f:'orbit',s:.5,r:60,cx:50,cz:120}]},
+
+ {n:'Charlotte',jp:'シャーロット',role:'機織り',ring:'R2+R3+R5',at:[200,40,-80],pal:0xdd88ff,msg:"植え · 織る · 時に 網 に 掛かる · sh sh sh",parts:{k:[
+  {n:'body',g:'sph',d:[22],k:[
+   {g:'sph',d:[18],c:0xbb66dd},
+   eye([15,5,7],0xff0000),eye([15,5,-7],0xff0000),
+   eye([12,-2,10],0xff0000),eye([12,-2,-10],0xff0000),
+   {n:'lA1',p:[8,0,15],k:[{g:'box',d:[4,2,25],c:0xdd88ff,p:[0,8,12],r:[-.8,0,0]},{g:'box',d:[3,2,25],c:0xdd88ff,p:[0,15,25],r:[-1.5,0,0]}]},
+   {n:'lA2',p:[8,0,-15],k:[{g:'box',d:[4,2,25],c:0xdd88ff,p:[0,8,-12],r:[.8,0,0]},{g:'box',d:[3,2,25],c:0xdd88ff,p:[0,15,-25],r:[1.5,0,0]}]},
+   {n:'lB1',p:[-8,0,15],k:[{g:'box',d:[4,2,25],c:0xdd88ff,p:[0,8,12],r:[-.6,0,0]},{g:'box',d:[3,2,25],c:0xdd88ff,p:[0,15,25],r:[-1.3,0,0]}]},
+   {n:'lB2',p:[-8,0,-15],k:[{g:'box',d:[4,2,25],c:0xdd88ff,p:[0,8,-12],r:[.6,0,0]},{g:'box',d:[3,2,25],c:0xdd88ff,p:[0,15,-25],r:[1.3,0,0]}]},
+   {n:'web',p:[0,-25,0],k:[{g:'tor',d:[35,1],c:0xccccff,r:[1.57,0,0]},{g:'tor',d:[25,.8],c:0xccccff,r:[1.57,0,0]},{g:'tor',d:[15,.6],c:0xccccff,r:[1.57,0,0]}]}]}]},
+  beh:[{t:'lA1',f:'sway',s:1.5,a:.15},{t:'lA2',f:'sway',s:1.5,a:-.15,ph:.5},{t:'lB1',f:'sway',s:1.5,a:.15,ph:1},{t:'lB2',f:'sway',s:1.5,a:-.15,ph:1.5},{t:'web',f:'spin',s:.3},{t:'body',f:'bob',s:.8,a:2}]},
+
+ {n:'Laurie',jp:'ローリー',role:'夜番',ring:'R2 (選)',at:[120,100,100],pal:0x8844cc,msg:"楽 は 信号 · 楽 だから bzz 可",parts:{k:[
+  {n:'body',g:'sph',d:[15],k:[
+   {g:'sph',d:[13],c:0x664499},
+   {n:'head',p:[0,12,0],k:[{g:'sph',d:[10]},{g:'con',d:[3,10,3],c:0x664499,p:[0,8,4]},{g:'con',d:[3,10,3],c:0x664499,p:[0,8,-4]},eye([6,2,5],0xff4400),eye([6,2,-5],0xff4400),{g:'sph',d:[2],c:0xffffff,p:[8,-2,3]},{g:'sph',d:[2],c:0xffffff,p:[8,-2,-3]}]},
+   {n:'wL',p:[0,3,5],k:[{g:'box',d:[2,25,3],c:0x552288,p:[15,0,0],r:[0,0,.5]},{g:'box',d:[2,20,3],c:0x552288,p:[32,-8,0],r:[0,0,.3]}]},
+   {n:'wR',p:[0,3,-5],k:[{g:'box',d:[2,25,3],c:0x552288,p:[-15,0,0],r:[0,0,-.5]},{g:'box',d:[2,20,3],c:0x552288,p:[-32,-8,0],r:[0,0,-.3]}]},
+   {n:'feet',p:[0,-12,0],k:[{g:'cyl',d:[1,1,8],c:0x552288,p:[4,-4,0]},{g:'cyl',d:[1,1,8],c:0x552288,p:[-4,-4,0]}]}]}]},
+  beh:[{t:'wL',f:'flap',s:15,a:.7},{t:'wR',f:'flap',s:15,a:-.7},{t:'body',f:'bob',s:3,a:8},{t:'head',f:'sway',s:4,a:.3}]}
+];
+
+const scene=new T.Scene();
+const camera=new T.PerspectiveCamera(55,innerWidth/innerHeight,1,10000);
+camera.position.set(0,150,900);camera.lookAt(0,0,0);
+const gl=new T.WebGLRenderer({antialias:true,alpha:true});
+gl.setSize(innerWidth,innerHeight);gl.setClearColor(0x0a0804,1);
+document.body.appendChild(gl.domElement);
+const css=new T.CSS3DRenderer();css.setSize(innerWidth,innerHeight);
+css.domElement.style.cssText='position:fixed;inset:0;pointer-events:none';
+document.body.appendChild(css.domElement);
+scene.add(new T.GridHelper(1800,36,0xDCA030,0x3a2810).translateY(-100));
+
+const LABELS=[];let labelsVisible=true;
+function toggleLabels(){labelsVisible=!labelsVisible;LABELS.forEach(l=>l.visible=labelsVisible)}
+
+const CREATURES=[],PICKABLE=[];
+ZOO.forEach(cd=>{const root=new T.Group();root.position.set(...cd.at);scene.add(root);
+ const reg={};build(cd.parts,root,reg,cd.pal);
+ root.traverse(o=>{if(o.isMesh){o.userData.creature=cd.n;PICKABLE.push(o)}});
+ const cnv=document.createElement('canvas');cnv.width=256;cnv.height=64;
+ const ctx=cnv.getContext('2d');
+ ctx.fillStyle='#0a0804ee';ctx.fillRect(0,0,256,64);
+ ctx.strokeStyle='#'+cd.pal.toString(16).padStart(6,'0');ctx.lineWidth=2;ctx.strokeRect(1,1,254,62);
+ ctx.font='bold 20px "Courier New"';ctx.fillStyle='#'+cd.pal.toString(16).padStart(6,'0');ctx.textAlign='center';
+ ctx.fillText(cd.jp+' · '+cd.ring,128,26);
+ ctx.font='14px "Courier New"';ctx.fillStyle='#DCA030';
+ ctx.fillText(cd.role,128,48);
+ const tex=new T.CanvasTexture(cnv);
+ const sprite=new T.Sprite(new T.SpriteMaterial({map:tex,transparent:true}));
+ sprite.scale.set(80,20,1);sprite.position.set(0,80,0);
+ root.add(sprite);LABELS.push(sprite);
+ const kEntry={k:KSTAR+(Math.random()-.5)*.5,name:cd.n};K.list.push(kEntry);
+ CREATURES.push({cd,root,reg,kEntry})});
+document.getElementById('s').textContent=CREATURES.length+' 生き物 · κ-coupled';
+
+const HYD=new Map();
+function hydrate(cd,target){if(HYD.has(cd.n))return;
+ const col='#'+cd.pal.toString(16).padStart(6,'0');
+ const r=document.createElement('div');r.className='t';
+ r.style.cssText+=`;border-color:${col};color:${col};box-shadow:0 0 18px ${col}44 inset`;
+ r.innerHTML=`<span class="x">✕</span>
+  <h4 style="border-color:${col}">${cd.jp} · ${cd.n} · κ=<span class="kv">—</span></h4>
+  <div class="meta">${cd.role} · ${cd.ring}</div>
+  <div class="o"></div>
+  <input placeholder="呟き · pet feed kick stats κ=...">`;
+ const o=r.querySelector('.o'),i=r.querySelector('input'),kv=r.querySelector('.kv');
+ const log=m=>{const d=document.createElement('div');d.textContent=m;d.style.borderColor=col;o.appendChild(d);o.scrollTop=o.scrollHeight};
+ log("» "+cd.msg);
+ const entry=CREATURES.find(x=>x.cd===cd).kEntry;
+ const replies={Gerald:"*reads · no reply*",Cassandra:"*seals envelope*",Gary:"measuring...",Kono:"*stands in ground*",Konomi:"*soft nicker* 🎵",Kelly:"*wave: rolling*",Jake:"won't apologize",Alex:"*scans cliff*",Teresa:"RRAAH- *gate slams*",Thomas:"...",John:"*low infrasonic rumble*",Buzz:"bzzzzz · 510510",Charlotte:"sh sh sh",Laurie:"楽 metric ↑"};
+ i.addEventListener('keydown',e=>{if(e.key!=='Enter')return;
+  const c=i.value.trim().toLowerCase();i.value='';if(!c)return;log("› "+c);
+  if(c==='pet'||c==='good'){entry.k=Math.min(.95,entry.k+.1);log("♥ κ+")}
+  else if(c==='feed'){entry.k=KSTAR;log("→ φ locked · "+KSTAR.toFixed(3))}
+  else if(c==='kick'){entry.k=Math.random();log("⚡ scrambled")}
+  else if(c==='stats')log(`κ=${entry.k.toFixed(3)} Ω=${K.mean.toFixed(3)} δ=${Math.abs(entry.k-KSTAR).toFixed(3)}`);
+  else if(c.startsWith('κ=')||c.startsWith('k=')){const v=parseFloat(c.slice(2));if(!isNaN(v)){entry.k=Math.max(.05,Math.min(.95,v));log("κ set "+v.toFixed(3))}}
+  else log(replies[cd.n]||"*"+cd.n.toLowerCase()+" stares*")});
+ r.querySelector('.x').onclick=()=>{scene.remove(HYD.get(cd.n));HYD.delete(cd.n)};
+ r.addEventListener('pointerdown',e=>e.stopPropagation());r.style.pointerEvents='auto';
+ const obj=new T.CSS3DObject(r);obj.scale.setScalar(.5);obj.userData.tgt=target;obj.userData.kv=kv;obj.userData.entry=entry;
+ scene.add(obj);HYD.set(cd.n,obj)}
+
+const ray=new T.Raycaster(),mouse=new T.Vector2();
+let drag=false,moved=false,px=0,py=0,rx=.1,ry=.3;
+addEventListener('pointerdown',e=>{drag=true;moved=false;px=e.clientX;py=e.clientY});
+addEventListener('pointermove',e=>{if(drag){if(Math.abs(e.clientX-px)+Math.abs(e.clientY-py)>4)moved=true;ry+=(e.clientX-px)*.006;rx+=(e.clientY-py)*.006;px=e.clientX;py=e.clientY}mouse.x=(e.clientX/innerWidth)*2-1;mouse.y=-(e.clientY/innerHeight)*2+1});
+addEventListener('pointerup',()=>{if(drag&&!moved){ray.setFromCamera(mouse,camera);const h=ray.intersectObjects(PICKABLE,true)[0];if(h){let m=h.object;while(m&&!m.userData?.creature)m=m.parent;if(m){const cd=ZOO.find(z=>z.n===m.userData.creature);hydrate(cd,CREATURES.find(x=>x.cd===cd).root)}}}drag=false});
+addEventListener('wheel',e=>{camera.position.z=Math.max(200,Math.min(2500,camera.position.z+e.deltaY))},{passive:true});
+addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();gl.setSize(innerWidth,innerHeight);css.setSize(innerWidth,innerHeight)});
+
+const tmp=new T.Vector3();let lastT=0;
+function tick(ts){const t=ts*.001,dt=Math.min(.05,t-lastT);lastT=t;
+ if(K.run)K.step(dt);
+ document.getElementById('k').textContent=K.mean.toFixed(4);
+ CREATURES.forEach(({cd,reg,kEntry})=>{const kMul=.3+kEntry.k*1.4;cd.beh.forEach(b=>{const n=reg[b.t];if(n&&DRV[b.f])DRV[b.f](n,t,b,kMul)})});
+ scene.rotation.x+=(rx-scene.rotation.x)*.08;
+ scene.rotation.y+=(ry-scene.rotation.y)*.08;
+ HYD.forEach(obj=>{obj.userData.tgt.getWorldPosition(tmp);obj.position.copy(tmp).add(new T.Vector3(0,110,0));obj.quaternion.copy(camera.quaternion);if(obj.userData.kv)obj.userData.kv.textContent=obj.userData.entry.k.toFixed(3)});
+ gl.render(scene,camera);css.render(scene,camera);requestAnimationFrame(tick)}
+tick(0);
+</script></body></html>

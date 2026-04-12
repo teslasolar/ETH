@@ -3208,6 +3208,21 @@ UDT['eth.org.page'] = {
   UDT['eth.org.store-explorer'].render({}),
   el('h2', {}, 'Swarm · The Writing is the Test'),
   UDT['eth.org.swarm-dashboard'].render({}),
+  el('h2', {}, '🐝 Zoo · KONOMI 動物園'),
+  el('section', {
+   style:{background:'var(--bg-raised)',borderRadius:'var(--radius-lg)',
+          padding:'1rem',border:'1px solid rgba(220,160,48,0.3)'},
+  }, [
+   el('div', {style:{display:'flex',alignItems:'baseline',gap:'1rem',flexWrap:'wrap'}}, [
+    el('h3', {style:{margin:0,color:'#f4c870',fontSize:'1rem'}}, '14 生き物 · κ-coupled'),
+    el('a', {href:'zoo/', style:{color:'var(--r2)'}}, 'browse zoo/ →'),
+    el('a', {href:'zoo/index.html', style:{color:'var(--r2)'}}, '3D viewer →'),
+   ]),
+   el('div', {style:{color:'var(--dim)',fontSize:'0.75rem',marginTop:'0.5rem'}},
+     'anthropomorphized agents · 10 self-regulation + 2 healing + 2 care · fold(zoo) = 510510 · each agent sub-250-token spec'),
+   el('div', {style:{fontSize:'1.4rem',letterSpacing:'0.25em',marginTop:'0.5rem'}},
+     '🦆🐛⚡🦏🐴🪼🐍🦌🦖🦛🦣🐝🕸️🦇'),
+  ]),
   UDT['eth.org.footer'].render({}),
  ]),
 };
