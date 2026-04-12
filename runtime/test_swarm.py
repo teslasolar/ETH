@@ -4,105 +4,105 @@ test_swarm.py — 31-agent swarm test against store/01-layers.md
 
 Topology: 6 cells (one per layer) × 5 roles + 1 coordinator = 31.
 Each cell runs independently; the coordinator integrates the six.
-Degenerate case: 01-layers.md has one claim per cell, so each cell's
-work is small and the coordinator does most of the integration.
+
+Degenerate case: 01-layers.md has one canonical entry per layer, so
+each cell's work is small and the coordinator does most of the
+integration. The harness still runs — it just runs trivially.
+Which is the right answer for the file that defines the layers
+themselves: a source this small should not trigger deep cell work.
+
+For the non-trivial run, point the same topology at a real paper
+whose content touches every layer (parts/VIII-self-protocol.md
+stresses this — see test_swarm_paper8.py).
 """
-import sys, subprocess
-from pathlib import Path
 
-REPO = Path(__file__).resolve().parent.parent
+import sys
 
-# ─── the six layers (cell identities) ───
-LAYERS = [
-    ("L0", "●", "body / gut / ENS"),
-    ("L1", "⬛", "peripheral sensors"),
-    ("L2", "〜", "brainstem / vagus / LC"),
-    ("L3", "♡", "limbic / amygdala"),
-    ("L4", "△", "prefrontal / labeling"),
-    ("L5", "◯", "narrative self"),
-]
+from swarm import (
+    CELLS_31, ALL_LAYERS,
+    validator_green, load_layers_store,
+    check_paper_mentions, check_code_is_class, check_docs_not_imperative,
+    check_items_classify,
+    header, cell_row, coordinator_row, footer,
+    GLYPH_TO_LAYER, LAYER_TO_GLYPH,
+)
 
-# ─── the five roles within each cell ───
-ROLES = ["📄 PAPER", "⚙ CODE", "📖 DOCS", "🧪 TEST", "🔬 REVIEWER"]
 
-# ─── what each cell claims about its own layer ───
-# In the degenerate case (01-layers.md) each cell just names itself.
-def cell_output(layer_id, glyph, english):
-    return {
-        "📄 PAPER":    f"{layer_id} is {english}.",
-        "⚙ CODE":     f"class {layer_id}(Layer): pass  # {english}",
-        "📖 DOCS":     f"There is a layer called {layer_id}, which is the {english}.",
-        "🧪 TEST":     "PASS",  # no intra-cell drift possible with 1 claim
-        "🔬 REVIEWER": "PASS",  # master doc has exactly this layer
+def load_items():
+    """Return one item per canonical layer in store/01-layers.md."""
+    layers = load_layers_store()
+    return [
+        (layer["id"], f"{layer['glyph']} {layer['name']}", frozenset({layer["id"]}))
+        for layer in layers
+    ]
+
+
+def build_cell(layer_id, own_layers, all_items):
+    own = [it for it in all_items if it[2] & own_layers]
+    text = own[0][1] if own else ""
+    out = {
+        "📄 PAPER": f"{layer_id} is {text}.",
+        "⚙ CODE":  f"class {layer_id}(Layer): pass  # {text}",
+        "📖 DOCS":  f"There is a layer called {layer_id}, {text}.",
     }
+    return out, own
 
-# ─── intra-cell tests (30 checks, 5 per cell) ───
-def run_cell(layer_id, glyph, english):
-    out = cell_output(layer_id, glyph, english)
-    results = []
-    # PAPER must name the layer
-    results.append(("📄", layer_id in out["📄 PAPER"]))
-    # CODE must be syntactically a class definition
-    results.append(("⚙", out["⚙ CODE"].startswith("class")))
-    # DOCS must start with "There" (READ-protocol: no imperatives)
-    first = out["📖 DOCS"].strip().split()[0].lower().rstrip(",.")
-    imperatives = {"do","use","make","run","put","wear","take","stop",
-                   "start","be","ensure","note"}
-    results.append(("📖", first not in imperatives))
-    # TEST agent's self-report
-    results.append(("🧪", out["🧪 TEST"] == "PASS"))
-    # REVIEWER's self-report
-    results.append(("🔬", out["🔬 REVIEWER"] == "PASS"))
-    return results, out
 
-# ─── coordinator test (1 check) ───
-def coordinator(all_cell_outputs):
-    """◯ — sees everything, checks inter-cell consistency + coverage."""
-    # consistency: no two cells claim the same layer
-    names = [out["📄 PAPER"].split()[0] for out in all_cell_outputs]
-    if len(set(names)) != 6:
+def run_cell(layer_id, own_layers, all_items):
+    out, own = build_cell(layer_id, own_layers, all_items)
+    return [
+        ("📄", check_paper_mentions(out["📄 PAPER"], own_layers)),
+        ("⚙",  check_code_is_class(out["⚙ CODE"])),
+        ("📖", check_docs_not_imperative(out["📖 DOCS"])),
+        ("🧪", check_items_classify(own, own_layers)),
+        ("🔬", len(own) == 1),  # exactly one canonical layer per cell
+    ], own
+
+
+def coordinator(cell_owns, all_items):
+    # six distinct layers claimed, no duplicates
+    claimed = [it[2] for own in cell_owns.values() for it in own]
+    flat = set()
+    for layer_set in claimed:
+        flat |= layer_set
+    if flat != ALL_LAYERS:
+        return False, f"missing or extra layers: {flat ^ ALL_LAYERS}"
+    # no two cells claim the same layer
+    if sum(len(own) for own in cell_owns.values()) != 6:
         return False, "two cells claimed the same layer"
-    # coverage: all six layer IDs are present
-    expected = {"L0","L1","L2","L3","L4","L5"}
-    if set(names) != expected:
-        return False, f"missing or extra layers: {expected ^ set(names)}"
-    # external: validator on the source file still passes
-    r = subprocess.run(
-        ["python3", str(REPO/"codec"/"decompress.py"), "--validate"],
-        capture_output=True, text=True
-    )
-    if r.returncode != 0:
+    if not validator_green():
         return False, "validator failed on source"
     return True, "six cells cover six layers, no drift, validator green"
 
-# ─── run the swarm ───
+
 def main():
-    print(f"swarm test · source = store/01-layers.md")
-    print(f"topology = 6 cells × 5 roles + 1 coordinator = 31 agents")
-    print("─" * 56)
+    header("store/01-layers.md", CELLS_31)
+
+    items = load_items()
     total = 0
     failed = 0
-    all_outputs = []
-    for layer_id, glyph, english in LAYERS:
-        results, out = run_cell(layer_id, glyph, english)
-        all_outputs.append(out)
+    cell_owns = {}
+
+    for layer_id, own_layers in CELLS_31:
+        checks, own = run_cell(layer_id, own_layers, items)
+        cell_owns[layer_id] = own
+        glyph = LAYER_TO_GLYPH[layer_id]
         row = f"  {glyph} {layer_id} cell: "
-        for role_icon, ok in results:
-            row += f"{role_icon}{'✓' if ok else '✗'} "
-            total += 1
-            if not ok:
-                failed += 1
+        for icon, ok in checks:
+            row += f"{icon}{'✓' if ok else '✗'} "
         print(row)
-    # coordinator
-    ok, msg = coordinator(all_outputs)
+        total += len(checks)
+        failed += sum(1 for _, ok in checks if not ok)
+
+    ok, msg = coordinator(cell_owns, items)
     total += 1
     if not ok:
         failed += 1
     print(f"  ◯ coordinator: {'✓' if ok else '✗'}  ({msg})")
-    print("─" * 56)
-    print(f"31 agents · {total - failed} pass · {failed} fail")
-    print(f"result: {'PASS' if failed == 0 else 'FAIL'}")
+
+    footer(31, total, failed)
     sys.exit(failed)
+
 
 if __name__ == "__main__":
     main()
