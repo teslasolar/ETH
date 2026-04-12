@@ -3,298 +3,3262 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>ETH · Enteric Translation Hypothesis · Frumkin 2026</title>
+<title>ETH · 腸 Factory · Frumkin 2026</title>
 <style>
+/* ───── design tokens ───── */
 :root {
   --bg: #0a0a0f;
+  --bg-raised: #12121a;
+  --bg-hover: rgba(255,255,255,0.04);
   --fg: #e0e0e0;
+  --fg-bright: #fff;
   --dim: #888;
-  --r0: #993366;
-  --r1: #00aadd;
-  --r2: #ffaa00;
-  --r3: #ff4444;
-  --r4: #44aa44;
-  --r5: #aa44ff;
-  --r6: #ffffff;
-  --mono: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', 'Menlo', monospace;
-  --serif: 'Georgia', 'Palatino', serif;
+  --dim2: #555;
+  --r0: #993366;  --r1: #00aadd;  --r2: #ffaa00;
+  --r3: #ff4444;  --r4: #44aa44;  --r5: #aa44ff;  --r6: #eeeeee;
+  --pass: #44aa44;
+  --fail: #ff4444;
+  --pending: #ffaa00;
+  --mono: 'JetBrains Mono','Fira Code','Cascadia Code','Menlo',monospace;
+  --serif: 'Georgia','Palatino',serif;
+  --radius: 4px;
+  --radius-lg: 6px;
+  --border: rgba(255,255,255,0.08);
 }
-* { margin: 0; padding: 0; box-sizing: border-box; }
-body {
-  background: var(--bg);
-  color: var(--fg);
-  font-family: var(--mono);
-  font-size: 14px;
-  line-height: 1.6;
-  padding: 2rem;
-  max-width: 960px;
-  margin: 0 auto;
-}
-h1 {
-  font-size: 1.8rem;
-  font-weight: 400;
-  letter-spacing: 0.05em;
-  margin-bottom: 0.25rem;
-}
-.subtitle {
-  color: var(--dim);
-  font-size: 0.9rem;
-  margin-bottom: 2rem;
-}
-.sigil {
-  font-size: 1.4rem;
-  letter-spacing: 0.3em;
-  margin-bottom: 3rem;
-  color: var(--dim);
-}
-.ring-bar {
-  display: flex;
-  gap: 2px;
-  margin-bottom: 3rem;
-  height: 4px;
-}
-.ring-bar span {
-  flex: 1;
-  border-radius: 2px;
-}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--fg);font-family:var(--mono);font-size:13px;
+     line-height:1.55;padding:2rem 1.5rem;max-width:1100px;margin:0 auto}
+a{color:inherit;text-decoration:none}
+a:hover{color:var(--fg-bright)}
+h1,h2,h3,h4{font-weight:400;letter-spacing:0.03em}
+h1{font-size:1.8rem;margin-bottom:0.25rem}
+h2{font-size:1rem;margin-top:3rem;margin-bottom:1rem;color:var(--dim);
+   text-transform:uppercase;letter-spacing:0.1em;border-bottom:1px solid var(--border);padding-bottom:0.5rem}
+h3{font-size:0.9rem;color:var(--dim);margin-bottom:0.5rem}
+code,kbd{font-family:var(--mono);background:rgba(255,255,255,0.05);padding:1px 5px;border-radius:3px}
+pre{font-family:var(--mono);white-space:pre-wrap;word-wrap:break-word}
 
-/* paper cards */
-.papers { display: flex; flex-direction: column; gap: 1.5rem; }
-.paper {
-  border-left: 3px solid var(--dim);
-  padding: 1rem 1.5rem;
-  background: rgba(255,255,255,0.02);
-  border-radius: 0 6px 6px 0;
-  cursor: pointer;
-  transition: border-color 0.2s, background 0.2s;
-}
-.paper:hover { background: rgba(255,255,255,0.05); }
-.paper.active { background: rgba(255,255,255,0.04); }
-.paper .num {
-  font-size: 0.75rem;
-  color: var(--dim);
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-}
-.paper .title {
-  font-size: 1.1rem;
-  font-weight: 600;
-  margin: 0.25rem 0;
-}
-.paper .desc {
-  font-family: var(--serif);
-  font-size: 0.9rem;
-  color: var(--dim);
-  line-height: 1.5;
-}
-.paper .meta {
-  margin-top: 0.5rem;
-  font-size: 0.75rem;
-  color: var(--dim);
-}
-.paper .meta .glyph { font-size: 1rem; margin-right: 0.25rem; }
-.paper .layers {
-  display: inline-flex;
-  gap: 4px;
-  margin-left: 0.5rem;
-}
-.paper .layers .dot {
-  width: 8px; height: 8px;
-  border-radius: 50%;
-  display: inline-block;
-}
+/* ───── atoms ───── */
+.eth-dot{width:8px;height:8px;border-radius:50%;display:inline-block;vertical-align:middle}
+.eth-dot.-large{width:12px;height:12px}
+.eth-glyph{display:inline-block;font-size:1rem;line-height:1}
+.eth-glyph.-large{font-size:1.4rem}
+.eth-label{display:inline-block}
+.eth-label.-dim{color:var(--dim)}
+.eth-label.-bright{color:var(--fg-bright)}
+.eth-label.-accent{color:var(--r2)}
+.eth-label.-small{font-size:0.75rem}
+.eth-label.-tiny{font-size:0.7rem;letter-spacing:0.1em;text-transform:uppercase}
+.eth-label.-serif{font-family:var(--serif)}
+.eth-badge{display:inline-block;padding:1px 6px;border-radius:3px;font-size:0.7rem;
+           background:rgba(255,255,255,0.06);border:1px solid var(--border);
+           letter-spacing:0.05em;line-height:1.5}
+.eth-badge.-status{border-radius:10px;padding:1px 8px}
+.eth-badge.-pass{color:var(--pass);border-color:rgba(68,170,68,0.3);background:rgba(68,170,68,0.08)}
+.eth-badge.-fail{color:var(--fail);border-color:rgba(255,68,68,0.3);background:rgba(255,68,68,0.08)}
+.eth-badge.-pending{color:var(--pending);border-color:rgba(255,170,0,0.3);background:rgba(255,170,0,0.08)}
+.eth-badge.-link{cursor:pointer}
+.eth-badge.-link:hover{background:rgba(255,255,255,0.1);border-color:rgba(255,255,255,0.25)}
+.eth-status-dot{display:inline-block;width:14px;height:14px;border-radius:50%;line-height:14px;
+                text-align:center;font-size:0.7rem}
+.eth-status-dot.-pass{background:rgba(68,170,68,0.15);color:var(--pass)}
+.eth-status-dot.-fail{background:rgba(255,68,68,0.15);color:var(--fail)}
+.eth-count{font-size:1.5rem;font-weight:600;line-height:1;color:var(--fg-bright)}
+.eth-bar-segment{flex:1;height:4px;border-radius:2px}
 
-/* content panel */
-.content-panel {
-  display: none;
-  margin-top: 0.75rem;
-  padding: 1rem;
-  background: rgba(0,0,0,0.3);
-  border-radius: 4px;
-  font-size: 0.85rem;
-  line-height: 1.7;
-  white-space: pre-wrap;
-  font-family: var(--mono);
-  max-height: 60vh;
-  overflow-y: auto;
-}
-.content-panel.visible { display: block; }
+/* ───── molecules ───── */
+.eth-ring-bar{display:flex;gap:2px;margin:1.5rem 0 2rem 0}
+.eth-layer-badge{display:inline-flex;align-items:center;gap:6px;padding:3px 8px;
+                 background:var(--bg-raised);border-radius:var(--radius);font-size:0.75rem}
+.eth-row{display:flex;align-items:center;gap:0.5rem;padding:0.4rem 0.6rem;
+         border-radius:var(--radius);font-size:0.8rem;
+         border-bottom:1px solid var(--border)}
+.eth-row:last-child{border-bottom:none}
+.eth-row:hover{background:var(--bg-hover)}
+.eth-row .-statement{color:var(--fg);flex:1;font-family:var(--serif);font-size:0.85rem}
+.eth-row .-meta{color:var(--dim);font-size:0.7rem;white-space:nowrap}
+.eth-row-refs{display:inline-flex;gap:3px;flex-wrap:wrap}
+.eth-store-card{padding:0.8rem 1rem;background:var(--bg-raised);border-radius:var(--radius);
+                border-left:3px solid var(--dim2);display:flex;flex-direction:column;gap:0.2rem}
 
-/* store section */
-.store-section {
-  margin-top: 3rem;
-  padding-top: 2rem;
-  border-top: 1px solid rgba(255,255,255,0.1);
-}
-.store-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: 1rem;
-  margin-top: 1rem;
-}
-.store-card {
-  padding: 0.75rem 1rem;
-  background: rgba(255,255,255,0.03);
-  border-radius: 4px;
-  border-left: 2px solid var(--dim);
-}
-.store-card .count { font-size: 1.4rem; font-weight: 600; }
-.store-card .label { font-size: 0.75rem; color: var(--dim); }
+/* ───── organisms ───── */
+.eth-sigil{font-size:1.4rem;letter-spacing:0.3em;color:var(--dim);margin-bottom:1rem}
+.eth-subtitle{color:var(--dim);font-size:0.85rem;margin-bottom:0.5rem}
+.eth-hero{margin-bottom:1rem}
 
-/* swarm status */
-.swarm-status {
-  margin-top: 3rem;
-  padding: 1rem;
-  background: rgba(68, 170, 68, 0.08);
-  border: 1px solid rgba(68, 170, 68, 0.2);
-  border-radius: 6px;
-  font-size: 0.85rem;
-}
-.swarm-status .pass { color: var(--r4); font-weight: 600; }
+.eth-paper-panel{background:var(--bg-raised);border-left:3px solid var(--dim);
+                 padding:1rem 1.25rem;border-radius:0 var(--radius-lg) var(--radius-lg) 0;
+                 cursor:pointer;transition:border-color 0.15s,background 0.15s;
+                 scroll-margin-top:1rem;margin-bottom:1rem}
+.eth-paper-panel:hover{background:rgba(255,255,255,0.04)}
+.eth-paper-panel.-open{background:rgba(255,255,255,0.03)}
+.eth-paper-panel .num{font-size:0.7rem;color:var(--dim);letter-spacing:0.12em;text-transform:uppercase}
+.eth-paper-panel .title{font-size:1.05rem;font-weight:600;margin:0.2rem 0}
+.eth-paper-panel .desc{font-family:var(--serif);font-size:0.85rem;color:var(--dim);line-height:1.55}
+.eth-paper-panel .meta-row{display:flex;align-items:center;gap:1rem;margin-top:0.6rem;font-size:0.7rem;color:var(--dim);flex-wrap:wrap}
+.eth-paper-panel .meta-row .dots{display:inline-flex;gap:3px}
+.eth-paper-panel .meta-row .glyphs{letter-spacing:0.2em;font-size:0.9rem}
+.eth-paper-panel .ratio{font-variant-numeric:tabular-nums}
 
-/* footer */
-.footer {
-  margin-top: 4rem;
-  padding-top: 2rem;
-  border-top: 1px solid rgba(255,255,255,0.1);
-  text-align: center;
-  color: var(--dim);
-  font-size: 0.8rem;
+.eth-paper-body{display:none;margin-top:1rem;padding-top:1rem;border-top:1px dashed var(--border)}
+.eth-paper-panel.-open .eth-paper-body{display:block}
+.eth-paper-body .data-blocks{display:flex;flex-direction:column;gap:1rem;margin-bottom:1rem}
+.eth-paper-body .data-section{background:rgba(0,0,0,0.3);border-radius:var(--radius);padding:0.75rem 1rem}
+.eth-paper-body .data-section-title{font-size:0.7rem;color:var(--dim);letter-spacing:0.1em;
+                                      text-transform:uppercase;margin-bottom:0.5rem}
+.eth-paper-body .prose{background:rgba(0,0,0,0.3);border-radius:var(--radius);
+                        padding:1rem;font-size:0.82rem;line-height:1.7;max-height:60vh;
+                        overflow-y:auto;white-space:pre-wrap;font-family:var(--mono);color:var(--fg)}
+
+.eth-store-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:0.75rem}
+.eth-store-explorer{display:flex;flex-direction:column;gap:1rem;margin-top:1rem}
+.eth-explorer-tabs{display:flex;gap:0.5rem;margin-bottom:1rem;flex-wrap:wrap;
+                   border-bottom:1px solid var(--border);padding-bottom:0.75rem}
+.eth-explorer-tab{padding:0.4rem 0.8rem;background:var(--bg-raised);border-radius:var(--radius);
+                  cursor:pointer;font-size:0.75rem;border:1px solid transparent;
+                  display:flex;align-items:center;gap:0.4rem}
+.eth-explorer-tab:hover{background:var(--bg-hover)}
+.eth-explorer-tab.-active{border-color:rgba(255,255,255,0.2);background:rgba(255,255,255,0.05)}
+.eth-explorer-tab .tab-count{color:var(--dim);font-size:0.65rem}
+.eth-explorer-body{background:var(--bg-raised);border-radius:var(--radius);
+                    padding:0.5rem 0.75rem;max-height:70vh;overflow-y:auto}
+
+.eth-swarm-dashboard{background:var(--bg-raised);border-radius:var(--radius-lg);
+                      padding:1rem;border:1px solid rgba(68,170,68,0.2)}
+.eth-swarm-runners{display:flex;flex-direction:column;gap:0.3rem;margin-top:0.75rem;font-size:0.75rem}
+.eth-swarm-runner{display:flex;align-items:center;gap:0.75rem;padding:0.3rem 0}
+.eth-swarm-runner .runner-name{flex:1;color:var(--dim);font-size:0.72rem}
+
+.eth-cross-ref-panel{margin-top:0.5rem;padding-top:0.5rem;border-top:1px dashed var(--border);
+                      display:flex;flex-wrap:wrap;gap:4px}
+
+.eth-footer{margin-top:4rem;padding-top:2rem;border-top:1px solid var(--border);
+            text-align:center;color:var(--dim);font-size:0.75rem}
+
+/* ───── id highlight target ───── */
+[id^="C0"],[id^="P0"],[id^="M0"],[id^="I0"],[id^="R0"],[id^="L0"],[id^="S0"]{scroll-margin-top:1rem}
+.eth-highlight{animation:eth-pulse 1.2s ease-out 1}
+@keyframes eth-pulse{
+  0%,100%{background:transparent}
+  30%{background:rgba(255,170,0,0.25)}
 }
 </style>
 </head>
 <body>
 
-<h1>ETH · 腸 Factory</h1>
-<div class="subtitle">Enteric Translation Hypothesis · Frumkin · 2026 · v1 + v2 + v3 + v4 + v5</div>
-<div class="sigil">● ⬛ 〜 ♡ △ ◐ ◯</div>
-
-<div class="ring-bar">
-  <span style="background:var(--r0)"></span>
-  <span style="background:var(--r1)"></span>
-  <span style="background:var(--r2)"></span>
-  <span style="background:var(--r3)"></span>
-  <span style="background:var(--r4)"></span>
-  <span style="background:var(--r5)"></span>
-  <span style="background:var(--r6)"></span>
-</div>
-
-<div class="papers" id="papers"></div>
-
-<div class="store-section">
-  <h2 style="font-size:1rem; font-weight:400; letter-spacing:0.05em;">Store · Object Graph</h2>
-  <div class="store-grid">
-    <div class="store-card" style="border-color:var(--r0)"><div class="count">6</div><div class="label">layers</div></div>
-    <div class="store-card" style="border-color:var(--r3)"><div class="count">10</div><div class="label">claims</div></div>
-    <div class="store-card" style="border-color:var(--r4)"><div class="count">81</div><div class="label">predictions</div></div>
-    <div class="store-card" style="border-color:var(--r2)"><div class="count">33</div><div class="label">metrics</div></div>
-    <div class="store-card" style="border-color:var(--r1)"><div class="count">18</div><div class="label">interventions</div></div>
-    <div class="store-card" style="border-color:var(--r5)"><div class="count">26</div><div class="label">references</div></div>
-  </div>
-  <div style="margin-top:1rem; font-size:0.8rem; color:var(--dim);">174 objects · 196 cross-references · zero dangling</div>
-</div>
-
-<div class="swarm-status">
-  <span class="pass">141 / 141 PASS</span> · 11 swarm runners · primes 11 and 31 · the writing is the test
-</div>
-
-<div class="footer">
-  📐🦆 · the enterprise doesn't stop · it routes · now the routes have voltmeters<br>
-  <span style="font-size:0.7rem; margin-top:0.5rem; display:inline-block;">
-    codec/decompress.py --validate · runtime/test_swarm_*.py · stdlib only · no deps
-  </span>
-</div>
+<div id="app"></div>
 
 <script>
-const papers = [
-  { num: "I", title: "Foundation", file: "parts/I-foundation.md",
-    desc: "The ISA-95 skeleton. Six layers, five pathways, PACK-ML states on affect. The core claim: gut symptoms are the downstream dump of affect the cortex could not label.",
-    color: "--r6", layers: [0,1,2,3,4,5], per: 4, cen: 2 },
-  { num: "II", title: "Predictive Coding", file: "parts/II-predictive-coding.md",
-    desc: "Active inference reframe. L3→L4 is prediction-error resolution, not a handshake. Alexithymia is an under-fit generative model. Ships the four-mode phase space (A/B/C/H).",
-    color: "--r4", layers: [1,2,3,4], per: 7, cen: 6 },
-  { num: "III", title: "Physical Cables", file: "parts/III-physical-cables.md",
-    desc: "Two parallel substrates: uncinate fasciculus (limbic-affective tract) and anterior insula gradient (interoceptive hub). HEP as cortical readout. Three cables as structured data.",
-    color: "--r3", layers: [1,2,3,4], per: 7, cen: 6 },
-  { num: "IV", title: "The Gain Knob", file: "parts/IV-gain-knob.md",
-    desc: "LC-NE adaptive gain. Tonic vs phasic. BPS and SEPR as knob readings. The gut-LC-PFC closed triangle. READ/WRITE × LC binding. Four named knob states.",
-    color: "--r2", layers: [0,1,2,3,4], per: 14, cen: 4 },
-  { num: "V", title: "Molecular Boundary", file: "parts/V-molecular-boundary.md",
-    desc: "EC neuropod cells, Piezo2 mechanosensor, 5-HT3R vagal synapse under 100ms. CAP closes the loop. The L0/L1 boundary is a circuit, not an actuator.",
-    color: "--r0", layers: [0,1,2,3,4], per: 17, cen: 2 },
-  { num: "VI", title: "Interventions", file: "parts/VI-interventions.md",
-    desc: "Five pathways, mode-treatment map, Paper VIII phase stack. Which intervention for which mode. Three loop cut points. Super-additive thesis.",
-    color: "--r1", layers: [0,1,2,3,4,5], per: 10, cen: 11 },
-  { num: "VII", title: "Predictions", file: "parts/VII-predictions.md",
-    desc: "81 predictions in four falsification tiers. Tier 1 kills the theory. Tier 2 kills the mode-split. Tier 3 recalibrates. Tier 4 redesigns the self-protocol.",
-    color: "--r5", layers: [0,1,2,3,4,5], per: 14, cen: 8 },
-  { num: "VIII", title: "Self Protocol", file: "parts/VIII-self-protocol.md",
-    desc: "N=1. Five ABCDE phases, 70 days. Wearable HRV, phone-camera pupils, GI diary. Operational tomorrow. The subject is willing. The instruments are owned.",
-    color: "--r4", layers: [0,1,2,3,4,5], per: 13, cen: 6 },
-  { num: "IX", title: "Synthesis", file: "parts/IX-synthesis.md",
-    desc: "L5 enters. The observer is the layer that decides whether the work order was Complete. The repo is a compiled gut. The theory is a fixed point.",
-    color: "--r6", layers: [0,1,2,3,4,5], per: 10, cen: 22 },
+/* ───── embedded data · generated from store/*.md and parts/*.md ───── */
+const STORE = {
+ "layers": [
+  {
+   "id": "L0",
+   "glyph": "●",
+   "name": "GROUND",
+   "maps_to": [
+    "body",
+    "gut",
+    "ENS"
+   ],
+   "isa95": "L0 physical",
+   "failure": "smooth muscle dysmotility · barrier breach"
+  },
+  {
+   "id": "L1",
+   "glyph": "⬛",
+   "name": "SIGNAL",
+   "maps_to": [
+    "PNS",
+    "nociceptor",
+    "interoceptor"
+   ],
+   "isa95": "L1 IoT",
+   "failure": "sensor drift · dropout"
+  },
+  {
+   "id": "L2",
+   "glyph": "〜",
+   "name": "BUS",
+   "maps_to": [
+    "vagus",
+    "brainstem",
+    "NTS",
+    "LC"
+   ],
+   "isa95": "L2 SCADA",
+   "failure": "LC tonic over-drive · broadband SNR collapse"
+  },
+  {
+   "id": "L3",
+   "glyph": "♡",
+   "name": "AFFECT",
+   "maps_to": [
+    "amygdala",
+    "hippocampus",
+    "HPA"
+   ],
+   "isa95": "L3 MES",
+   "failure": "unacknowledged alarm · work order backlog"
+  },
+  {
+   "id": "L4",
+   "glyph": "△",
+   "name": "FORGE",
+   "maps_to": [
+    "PFC",
+    "OFC",
+    "vmPFC",
+    "insula"
+   ],
+   "isa95": "L4 ERP",
+   "failure": "alexithymia · generative-model under-fit"
+  },
+  {
+   "id": "L5",
+   "glyph": "◯",
+   "name": "OBSERVER",
+   "maps_to": [
+    "narrative",
+    "self"
+   ],
+   "isa95": "L5 Enterprise",
+   "failure": "dissociation · loss of witness"
+  }
+ ],
+ "claims": [
+  {
+   "id": "C001",
+   "status": "proposed",
+   "statement": "L3 to L4 routing is prediction error resolution, not a format handshake.",
+   "tests": [
+    "P015",
+    "P016",
+    "P017"
+   ]
+  },
+  {
+   "id": "C002",
+   "status": "supported",
+   "statement": "Interoception has four distinct dimensions: accuracy, sensibility, awareness, appraisal.",
+   "ref": "Greenwood-Van Meerveld · Garfinkel · Annu Rev Psych 76, 2025",
+   "tests": [
+    "P019",
+    "P041"
+   ]
+  },
+  {
+   "id": "C003",
+   "status": "supported",
+   "statement": "The uncinate fasciculus is the physical bandwidth channel for the L3 to L4 cable.",
+   "ref": "Lebel 2012 · TransPsych 2025 meta n=289/506",
+   "tests": [
+    "P029",
+    "P030",
+    "P037"
+   ]
+  },
+  {
+   "id": "C004",
+   "status": "proposed",
+   "statement": "Heartbeat evoked potential is a measurable proxy for vagus-to-limbic bus traffic.",
+   "tests": [
+    "P015",
+    "P019",
+    "P060"
+   ]
+  },
+  {
+   "id": "C005",
+   "status": "supported",
+   "statement": "LC-NE tonic bias is the gain knob of the L2 layer.",
+   "ref": "Aston-Jones · Cohen 2005",
+   "tests": [
+    "P041",
+    "P043",
+    "P044"
+   ]
+  },
+  {
+   "id": "C006",
+   "status": "established",
+   "statement": "Enterochromaffin cells form a sub-100ms synaptic boundary between lumen and vagal afferent.",
+   "ref": "Kaelberer · Bohórquez 2018 · Bellono 2017",
+   "tests": [
+    "P060",
+    "P061"
+   ]
+  },
+  {
+   "id": "C007",
+   "status": "supported",
+   "statement": "Anterior insula is the L3 to L4 convergence hub, parallel to the uncinate fasciculus.",
+   "ref": "Craig 2002 · Bird · Cook 2013",
+   "tests": [
+    "P064",
+    "P065"
+   ]
+  },
+  {
+   "id": "C008",
+   "status": "established",
+   "statement": "The cholinergic anti-inflammatory pathway closes the peripheral loop via alpha-7 nAChR on macrophages.",
+   "ref": "Tracey 2002 · 2007",
+   "tests": [
+    "P066",
+    "P067",
+    "P068"
+   ]
+  },
+  {
+   "id": "C009",
+   "status": "proposed",
+   "statement": "ETH failure modes partition into a precision × gain phase space with four regions: A (ASC+alexithymia), B (CPTSD), C (ADHD+alexithymia), H (healthy).",
+   "tests": [
+    "P031",
+    "P032",
+    "P046"
+   ]
+  },
+  {
+   "id": "C010",
+   "status": "proposed",
+   "statement": "AI READ-format translation (P3b) acts simultaneously as an LC normalizer and a generative-model training scaffold for L4.",
+   "tests": [
+    "P027",
+    "P057",
+    "P058"
+   ]
+  }
+ ],
+ "predictions": [
+  {
+   "id": "P001",
+   "version": "v1",
+   "category": "routing",
+   "statement": "Alexithymia severity correlates with GI symptom severity via vagal-tone metrics (HF-HRV, HEP)."
+  },
+  {
+   "id": "P002",
+   "version": "v1",
+   "category": "P3",
+   "statement": "Creative activity reduces GI symptoms in proportion to the emotional content of the work."
+  },
+  {
+   "id": "P003",
+   "version": "v1",
+   "category": "vagal",
+   "statement": "During P3 creative activity, ventral vagal tone rises while enteric efferent tone falls."
+  },
+  {
+   "id": "P004",
+   "version": "v1",
+   "category": "READ-vs-WRITE",
+   "statement": "WRITE-protocol and READ-protocol utterances produce differential ACC activation and cortisol response."
+  },
+  {
+   "id": "P005",
+   "version": "v1",
+   "category": "P3b",
+   "statement": "AI READ-format translation reduces GI symptoms at 90 days more than standard care."
+  },
+  {
+   "id": "P006",
+   "version": "v1",
+   "category": "fMRI",
+   "statement": "During affective overload, PFC activity falls while dorsal vagal nucleus activity rises (concurrent fMRI)."
+  },
+  {
+   "id": "P007",
+   "version": "v1",
+   "category": "HPA",
+   "statement": "Cortisol and intestinal permeability are associated, and the association tracks alexithymia score."
+  },
+  {
+   "id": "P008",
+   "version": "v1",
+   "category": "molecular",
+   "statement": "Gut 5-HT metabolites vary orthogonally to affect-labeling task performance."
+  },
+  {
+   "id": "P009",
+   "version": "v1",
+   "category": "P3",
+   "statement": "Structured music (composition, not background) outperforms relaxation music for GI outcomes."
+  },
+  {
+   "id": "P010",
+   "version": "v1",
+   "category": "withdrawal",
+   "statement": "Withdrawing creative outlets increases GI symptoms within 2-4 weeks."
+  },
+  {
+   "id": "P011",
+   "version": "v1",
+   "category": "generalization",
+   "statement": "The framework extends to ADHD and CPTSD cohorts when alexithymia is present."
+  },
+  {
+   "id": "P012",
+   "version": "v1",
+   "category": "vagal",
+   "statement": "Subdiaphragmatic vagotomy eliminates enteric affect routing (animal model)."
+  },
+  {
+   "id": "P013",
+   "version": "v1",
+   "category": "stim",
+   "statement": "Suppressing motor stim in ASC increases GI symptom frequency."
+  },
+  {
+   "id": "P014",
+   "version": "v1",
+   "category": "flagged",
+   "statement": "L3 to L4 routing involves a frequency-domain to time-domain conversion step (speculative, flagged)."
+  },
+  {
+   "id": "P015",
+   "version": "v2",
+   "category": "HEP",
+   "statement": "HEP amplitude is inversely correlated with TAS-20 score in ASC participants."
+  },
+  {
+   "id": "P016",
+   "version": "v2",
+   "category": "HEP",
+   "statement": "HEP amplitude increases on trials where affect labeling succeeds, in NT participants only."
+  },
+  {
+   "id": "P017",
+   "version": "v2",
+   "category": "HEP",
+   "statement": "HEP amplitude rises during P3 creative activity in ASC participants."
+  },
+  {
+   "id": "P018",
+   "version": "v2",
+   "category": "HEP",
+   "statement": "HEP amplitude rises during P3b /translate sessions in ASC participants."
+  },
+  {
+   "id": "P019",
+   "version": "v2",
+   "category": "HEP",
+   "statement": "Baseline HEP amplitude predicts magnitude of GI response (r>=0.35, n=80, 90% power)."
+  },
+  {
+   "id": "P020",
+   "version": "v2",
+   "category": "taVNS",
+   "statement": "taVNS combined with labeling training outperforms either alone over 8 weeks in ASC."
+  },
+  {
+   "id": "P021",
+   "version": "v2",
+   "category": "taVNS",
+   "statement": "taVNS reduces GI symptoms over 90 days in an ASC+alex RCT."
+  },
+  {
+   "id": "P022",
+   "version": "v2",
+   "category": "taVNS",
+   "statement": "taVNS combined with /translate sessions improves translation quality."
+  },
+  {
+   "id": "P023",
+   "version": "v2",
+   "category": "taVNS",
+   "statement": "taVNS effect size is inversely related to baseline HEP (larger gap => larger gain)."
+  },
+  {
+   "id": "P024",
+   "version": "v2",
+   "category": "stim",
+   "statement": "Permitted self-initiated stim increases HRV and HEP and decreases cortisol; effect tracks TAS-20."
+  },
+  {
+   "id": "P025",
+   "version": "v2",
+   "category": "stim",
+   "statement": "Suppressing stim raises 24-hour GI symptom load in ASC."
+  },
+  {
+   "id": "P026",
+   "version": "v2",
+   "category": "stim",
+   "statement": "Stim preference maps to an under-firing sensory subsystem (vestibular=>rock, tactile=>pressure, proprio=>heavy)."
+  },
+  {
+   "id": "P027",
+   "version": "v2",
+   "category": "P3b-structural",
+   "statement": "Longitudinal /translate use over 6 months reduces TAS-20 by at least 5 points."
+  },
+  {
+   "id": "P028",
+   "version": "v2",
+   "category": "P3b-structural",
+   "statement": "READ-format is required for the P3b effect; WRITE-format yields null or negative results."
+  },
+  {
+   "id": "P029",
+   "version": "v2",
+   "category": "P3b-structural",
+   "statement": "P3b therapeutic ceiling is set by baseline uncinate fasciculus fractional anisotropy."
+  },
+  {
+   "id": "P030",
+   "version": "v2",
+   "category": "P3b-structural",
+   "statement": "Pediatric P3b produces UF FA slope approaching NT norms (longitudinal DTI)."
+  },
+  {
+   "id": "P031",
+   "version": "v2",
+   "category": "mode-split",
+   "statement": "HEP spectrum features classify mode A versus mode B with AUC >= 0.75."
+  },
+  {
+   "id": "P032",
+   "version": "v2",
+   "category": "mode-split",
+   "statement": "Treatment by mode interaction: P3b outperforms SSP in mode A, inverse in mode B."
+  },
+  {
+   "id": "P033",
+   "version": "v2",
+   "category": "sleep",
+   "statement": "ASC+alex+GI reduces emotional REM content and increases somatic REM content."
+  },
+  {
+   "id": "P034",
+   "version": "v2",
+   "category": "sleep",
+   "statement": "Pre-sleep P3 activity raises next-morning HEP and reduces cortisol."
+  },
+  {
+   "id": "P035",
+   "version": "v2",
+   "category": "sleep",
+   "statement": "24-hour sleep deprivation increases GI symptoms faster in ASC than NT."
+  },
+  {
+   "id": "P036",
+   "version": "v2",
+   "category": "sleep",
+   "statement": "REM fragmentation predicts GI spikes with approximately 48-hour lag."
+  },
+  {
+   "id": "P037",
+   "version": "v2",
+   "category": "developmental",
+   "statement": "Observer-rated TAS in childhood predicts adult uncinate fasciculus FA (longitudinal)."
+  },
+  {
+   "id": "P038",
+   "version": "v2",
+   "category": "developmental",
+   "statement": "Early labeling-environment quality predicts higher UF FA slope through adolescence."
+  },
+  {
+   "id": "P039",
+   "version": "v2",
+   "category": "developmental",
+   "statement": "P3 and P3b interventions in ages 6-14 outperform adult intervention at equal dose."
+  },
+  {
+   "id": "P040",
+   "version": "v2",
+   "category": "developmental",
+   "statement": "After age 30 the structural to functional shift is dominant and trait alexithymia is largely static."
+  },
+  {
+   "id": "P041",
+   "version": "v3",
+   "category": "pupillometry",
+   "statement": "Baseline pupil size (BPS) correlates with TAS-20 in ASC adults."
+  },
+  {
+   "id": "P042",
+   "version": "v3",
+   "category": "pupillometry",
+   "statement": "Stim-evoked pupil response (SEPR) to affect stimuli is inversely related to TAS-20."
+  },
+  {
+   "id": "P043",
+   "version": "v3",
+   "category": "pupillometry",
+   "statement": "Pre/post /translate sessions show BPS reduction."
+  },
+  {
+   "id": "P044",
+   "version": "v3",
+   "category": "pupillometry",
+   "statement": "Magnitude of BPS decrease is correlated with magnitude of HEP increase (convergence)."
+  },
+  {
+   "id": "P045",
+   "version": "v3",
+   "category": "pupillometry",
+   "statement": "taVNS during task decreases BPS and increases SEPR in ASC."
+  },
+  {
+   "id": "P046",
+   "version": "v3",
+   "category": "mode-C",
+   "statement": "Scatter of BPS by SEPR yields k=3 clusters validated by TAS-20 + PCL-5 + ASRS."
+  },
+  {
+   "id": "P047",
+   "version": "v3",
+   "category": "glymphatic",
+   "statement": "Pre-sleep taVNS (20Hz, 20min) increases NREM3 and reduces AM BPS while raising HEP in ASC."
+  },
+  {
+   "id": "P048",
+   "version": "v3",
+   "category": "glymphatic",
+   "statement": "Chronic LC tonic elevation predicts age-matched reduction in CSF flow (MRI / arterial spin labeling)."
+  },
+  {
+   "id": "P049",
+   "version": "v3",
+   "category": "glymphatic",
+   "statement": "Evening /translate outperforms morning for pre-sleep affective routing."
+  },
+  {
+   "id": "P050",
+   "version": "v3",
+   "category": "3-factor-RCT",
+   "statement": "Probiotic by taVNS by /translate 8-arm RCT shows interaction at or above additive on HEP, BPS, GI diary, and TAS-20."
+  },
+  {
+   "id": "P051",
+   "version": "v3",
+   "category": "READ-x-LC",
+   "statement": "Session WRITE density correlates with BPS area under curve; ASC slope steeper than NT."
+  },
+  {
+   "id": "P052",
+   "version": "v3",
+   "category": "READ-x-LC",
+   "statement": "READ-only therapy outperforms eclectic therapy on 90-day GI outcomes."
+  },
+  {
+   "id": "P053",
+   "version": "v3",
+   "category": "READ-x-LC",
+   "statement": "AI READ-format score correlates with post-session BPS decrease."
+  },
+  {
+   "id": "P054",
+   "version": "v3",
+   "category": "stim-x-LC",
+   "statement": "Permitted stim produces negative BPS slope and negative SEPR slope; slopes track TAS-20."
+  },
+  {
+   "id": "P055",
+   "version": "v3",
+   "category": "stim-x-LC",
+   "statement": "Forced metronome stim underperforms self-initiated stim (specificity requires self-prediction)."
+  },
+  {
+   "id": "P056",
+   "version": "v3",
+   "category": "stim-x-LC",
+   "statement": "High-baseline-BPS participants show larger stim effect sizes."
+  },
+  {
+   "id": "P057",
+   "version": "v3",
+   "category": "P3b-x-LC",
+   "statement": "A single /translate session reduces BPS by at least 15% in ASC; WRITE chatbot control shows null."
+  },
+  {
+   "id": "P058",
+   "version": "v3",
+   "category": "P3b-x-LC",
+   "statement": "Dose-response: BPS delta is a function of READ-score multiplied by session depth."
+  },
+  {
+   "id": "P059",
+   "version": "v3",
+   "category": "P3b-x-LC",
+   "statement": "Pediatric weekly /translate for 12 months yields UF FA slope exceeding NT norms."
+  },
+  {
+   "id": "P060",
+   "version": "v4",
+   "category": "EC-circuit",
+   "statement": "Fatty or solid meal delays and attenuates post-meal HEP peak in ASC+alex."
+  },
+  {
+   "id": "P061",
+   "version": "v4",
+   "category": "EC-circuit",
+   "statement": "Ondansetron (5-HT3R antagonist) reduces both GI symptoms and HEP, revealing the symptom-vs-mechanism trade-off of bus blockade."
+  },
+  {
+   "id": "P062",
+   "version": "v4",
+   "category": "EC-circuit",
+   "statement": "SSRI effects dissociate into LC-side and EC-side components that can be measured independently."
+  },
+  {
+   "id": "P063",
+   "version": "v4",
+   "category": "EC-circuit",
+   "statement": "Probiotic (L. rhamnosus JB-1) raises SCFA, induces Tph1, normalizes EC firing, and lifts HEP while reducing BPS."
+  },
+  {
+   "id": "P064",
+   "version": "v4",
+   "category": "insula",
+   "statement": "Simultaneous insula fMRI and HEP show normal posterior and blunted anterior responses in ASC+alex (accuracy-to-appraisal dropout)."
+  },
+  {
+   "id": "P065",
+   "version": "v4",
+   "category": "insula",
+   "statement": "Anterior insula to vmPFC functional connectivity inversely correlates with TAS-20; interaction with UF FA is TBD."
+  },
+  {
+   "id": "P066",
+   "version": "v4",
+   "category": "CAP",
+   "statement": "taVNS at 20Hz for 20 minutes over 90 days reduces serum IL-6, TNF-alpha, and CRP by at least 20% in ASC+GI."
+  },
+  {
+   "id": "P067",
+   "version": "v4",
+   "category": "CAP",
+   "statement": "Fecal calprotectin falls during the same 90-day taVNS window."
+  },
+  {
+   "id": "P068",
+   "version": "v4",
+   "category": "CAP",
+   "statement": "CAP function (HRV-indexed) inversely correlates with GI load, r >= 0.4."
+  },
+  {
+   "id": "P069",
+   "version": "v4",
+   "category": "circadian",
+   "statement": "Post-meal HEP amplitude at +60 minutes is low in ASC+IBS."
+  },
+  {
+   "id": "P070",
+   "version": "v4",
+   "category": "circadian",
+   "statement": "P3b /translate is more effective pre-meal than post-meal (fasted bus is quieter)."
+  },
+  {
+   "id": "P071",
+   "version": "v4",
+   "category": "circadian",
+   "statement": "Light pre-sleep food reduces nighttime LC tonic and increases glymphatic access (requires validation)."
+  },
+  {
+   "id": "P072",
+   "version": "v4",
+   "category": "circadian",
+   "statement": "16:8 intermittent fasting in ASC adults reduces GI, BPS, and raises HEP via fewer LC burst events per day."
+  },
+  {
+   "id": "P073",
+   "version": "v4",
+   "category": "pediatric",
+   "statement": "At ages 6-14, three of four markers (BPS>1SD, SEPR<1SD, parent-TAS>=55, GI>=2/wk) predict GI severity at 18 (longitudinal, n>=200)."
+  },
+  {
+   "id": "P074",
+   "version": "v4",
+   "category": "pediatric",
+   "statement": "Early P3b (ages 8-12) outperforms late P3b (age 16+) on 24-month TAS-20 delta with effect size >= 0.6."
+  },
+  {
+   "id": "S001",
+   "version": "v5",
+   "category": "n1-phase-B",
+   "statement": "A to B transition produces labeling_depth up at least 15%, GI down at least 20%, and AM HRV up 5-10%."
+  },
+  {
+   "id": "S002",
+   "version": "v5",
+   "category": "n1-phase-C",
+   "statement": "Phase C (stim permit) raises HRV_AM, lowers HR_rest_AM, and increases rhythmic stim bursts with better self-rated regulation."
+  },
+  {
+   "id": "S003",
+   "version": "v5",
+   "category": "n1-phase-D",
+   "statement": "Phase D (sleep artifact) raises REM minutes, lowers next-AM GI, and reduces somatic dream content."
+  },
+  {
+   "id": "S004",
+   "version": "v5",
+   "category": "n1-phase-E",
+   "statement": "Phase E (combination) is at least additive over S001, S002, and S003, supporting interaction."
+  },
+  {
+   "id": "S005",
+   "version": "v5",
+   "category": "n1-daily",
+   "statement": "Daily READ:WRITE ratio correlates with HRV_slope improvement."
+  },
+  {
+   "id": "S006",
+   "version": "v5",
+   "category": "n1-daily",
+   "statement": "Post-meal HRV drop shrinks with intervention."
+  },
+  {
+   "id": "S007",
+   "version": "v5",
+   "category": "n1-daily",
+   "statement": "Stimulus to verbalization latency (emotion_lag) shortens across phases."
+  }
+ ],
+ "metrics": [
+  {
+   "id": "M001",
+   "name": "HEP",
+   "full_name": "Heartbeat Evoked Potential",
+   "kind": "physiological",
+   "layer": "L2",
+   "units": "μV",
+   "instrument": "EEG (Cz, 350-450ms post-R-wave)",
+   "n1_proxy": "HRV-HF rolling + 5-min paced RMSSD",
+   "refers_to": [
+    "C004",
+    "P015",
+    "P019"
+   ]
+  },
+  {
+   "id": "M002",
+   "name": "BPS",
+   "full_name": "Baseline Pupil Size",
+   "kind": "physiological",
+   "layer": "L2",
+   "units": "mm",
+   "instrument": "Pupil Labs / Tobii / phone-camera",
+   "n1_proxy": "AM phone-camera pupil area, 30cm fixed flash",
+   "refers_to": [
+    "C005",
+    "P041",
+    "P043"
+   ]
+  },
+  {
+   "id": "M003",
+   "name": "SEPR",
+   "full_name": "Stimulus-Evoked Pupil Response",
+   "kind": "physiological",
+   "layer": "L2",
+   "units": "mm delta",
+   "instrument": "Pupil Labs / Tobii",
+   "n1_proxy": "event-locked HR burst at notifications",
+   "refers_to": [
+    "C005",
+    "P042",
+    "P045"
+   ]
+  },
+  {
+   "id": "M004",
+   "name": "HF-HRV",
+   "full_name": "High-Frequency Heart Rate Variability",
+   "kind": "physiological",
+   "layer": "L2",
+   "units": "ms²",
+   "instrument": "ECG or photoplethysmography",
+   "n1_proxy": "wearable HRV continuous",
+   "refers_to": [
+    "C004",
+    "P003"
+   ]
+  },
+  {
+   "id": "M005",
+   "name": "RMSSD",
+   "full_name": "Root Mean Square of Successive Differences",
+   "kind": "physiological",
+   "layer": "L2",
+   "units": "ms",
+   "instrument": "ECG or PPG",
+   "n1_proxy": "5-min supine paced at wake",
+   "refers_to": [
+    "C004"
+   ]
+  },
+  {
+   "id": "M006",
+   "name": "SDNN",
+   "full_name": "Standard Deviation of NN Intervals",
+   "kind": "physiological",
+   "layer": "L2",
+   "units": "ms",
+   "instrument": "ECG or PPG",
+   "n1_proxy": "wearable SDNN 24h",
+   "refers_to": [
+    "C004"
+   ]
+  },
+  {
+   "id": "M007",
+   "name": "RSA",
+   "full_name": "Respiratory Sinus Arrhythmia",
+   "kind": "physiological",
+   "layer": "L2",
+   "units": "ms",
+   "instrument": "ECG + respiration belt",
+   "n1_proxy": null,
+   "refers_to": [
+    "C004"
+   ]
+  },
+  {
+   "id": "M008",
+   "name": "HR_rest",
+   "full_name": "Resting Heart Rate",
+   "kind": "physiological",
+   "layer": "L2",
+   "units": "bpm",
+   "instrument": "wearable or chest strap",
+   "n1_proxy": "AM resting HR, supine 5min",
+   "refers_to": []
+  },
+  {
+   "id": "M009",
+   "name": "EDA",
+   "full_name": "Electrodermal Activity",
+   "kind": "physiological",
+   "layer": "L2",
+   "units": "μS",
+   "instrument": "skin conductance electrodes",
+   "n1_proxy": null,
+   "refers_to": []
+  },
+  {
+   "id": "M010",
+   "name": "TAS-20",
+   "full_name": "Toronto Alexithymia Scale 20",
+   "kind": "questionnaire",
+   "layer": "L4",
+   "units": "sum score",
+   "instrument": "self-report Likert",
+   "n1_proxy": "LIWC-style emotion density in own text",
+   "refers_to": [
+    "C001",
+    "P015",
+    "P027",
+    "P041"
+   ]
+  },
+  {
+   "id": "M011",
+   "name": "MAIA-2",
+   "full_name": "Multidimensional Assessment of Interoceptive Awareness 2",
+   "kind": "questionnaire",
+   "layer": "L3",
+   "units": "subscale means",
+   "instrument": "self-report Likert",
+   "n1_proxy": "daily 3-word mood + body triad",
+   "refers_to": [
+    "C002"
+   ]
+  },
+  {
+   "id": "M012",
+   "name": "IAS",
+   "full_name": "Interoceptive Accuracy Scale",
+   "kind": "questionnaire",
+   "layer": "L1",
+   "units": "sum score",
+   "instrument": "self-report Likert",
+   "n1_proxy": null,
+   "refers_to": [
+    "C002"
+   ]
+  },
+  {
+   "id": "M013",
+   "name": "AQ-10",
+   "full_name": "Autism Quotient 10-item",
+   "kind": "questionnaire",
+   "layer": "L5",
+   "units": "sum score",
+   "instrument": "self-report",
+   "n1_proxy": null,
+   "refers_to": [
+    "C009"
+   ]
+  },
+  {
+   "id": "M014",
+   "name": "PCL-5",
+   "full_name": "PTSD Checklist for DSM-5",
+   "kind": "questionnaire",
+   "layer": "L3",
+   "units": "sum score",
+   "instrument": "self-report",
+   "n1_proxy": null,
+   "refers_to": [
+    "C009",
+    "P046"
+   ]
+  },
+  {
+   "id": "M015",
+   "name": "ASRS",
+   "full_name": "Adult ADHD Self-Report Scale",
+   "kind": "questionnaire",
+   "layer": "L4",
+   "units": "sum score",
+   "instrument": "self-report",
+   "n1_proxy": null,
+   "refers_to": [
+    "C009",
+    "P046"
+   ]
+  },
+  {
+   "id": "M016",
+   "name": "cortisol",
+   "full_name": "Salivary Cortisol",
+   "kind": "biomarker",
+   "layer": "L3",
+   "units": "nmol/L",
+   "instrument": "salivette + ELISA",
+   "n1_proxy": "+30min AM HR baseline",
+   "refers_to": [
+    "P007"
+   ]
+  },
+  {
+   "id": "M017",
+   "name": "IL-6",
+   "full_name": "Interleukin-6",
+   "kind": "biomarker",
+   "layer": "L0",
+   "units": "pg/mL",
+   "instrument": "serum ELISA",
+   "n1_proxy": null,
+   "refers_to": [
+    "C008",
+    "P066"
+   ]
+  },
+  {
+   "id": "M018",
+   "name": "TNF-alpha",
+   "full_name": "Tumor Necrosis Factor alpha",
+   "kind": "biomarker",
+   "layer": "L0",
+   "units": "pg/mL",
+   "instrument": "serum ELISA",
+   "n1_proxy": null,
+   "refers_to": [
+    "C008",
+    "P066"
+   ]
+  },
+  {
+   "id": "M019",
+   "name": "CRP",
+   "full_name": "C-reactive Protein",
+   "kind": "biomarker",
+   "layer": "L0",
+   "units": "mg/L",
+   "instrument": "serum high-sensitivity assay",
+   "n1_proxy": null,
+   "refers_to": [
+    "C008",
+    "P066"
+   ]
+  },
+  {
+   "id": "M020",
+   "name": "calprotectin",
+   "full_name": "Fecal Calprotectin",
+   "kind": "biomarker",
+   "layer": "L0",
+   "units": "μg/g stool",
+   "instrument": "fecal ELISA",
+   "n1_proxy": null,
+   "refers_to": [
+    "C008",
+    "P067"
+   ]
+  },
+  {
+   "id": "M021",
+   "name": "plasma_5HT",
+   "full_name": "Plasma Serotonin",
+   "kind": "biomarker",
+   "layer": "L0",
+   "units": "ng/mL",
+   "instrument": "HPLC",
+   "n1_proxy": null,
+   "refers_to": [
+    "C006",
+    "P008"
+   ]
+  },
+  {
+   "id": "M022",
+   "name": "SCFA",
+   "full_name": "Short-Chain Fatty Acid Panel",
+   "kind": "biomarker",
+   "layer": "L0",
+   "units": "mmol/L (stool)",
+   "instrument": "GC-MS",
+   "n1_proxy": null,
+   "refers_to": [
+    "P063"
+   ]
+  },
+  {
+   "id": "M023",
+   "name": "UF_FA",
+   "full_name": "Uncinate Fasciculus Fractional Anisotropy",
+   "kind": "structural",
+   "layer": "L4",
+   "units": "dimensionless (0-1)",
+   "instrument": "DTI MRI",
+   "n1_proxy": null,
+   "refers_to": [
+    "C003",
+    "P029",
+    "P030",
+    "P037"
+   ]
+  },
+  {
+   "id": "M024",
+   "name": "AI_vmPFC_FC",
+   "full_name": "Anterior Insula to vmPFC Functional Connectivity",
+   "kind": "structural",
+   "layer": "L4",
+   "units": "Pearson r",
+   "instrument": "resting-state fMRI",
+   "n1_proxy": null,
+   "refers_to": [
+    "C007",
+    "P065"
+   ]
+  },
+  {
+   "id": "M025",
+   "name": "NREM3_min",
+   "full_name": "NREM3 Sleep Minutes",
+   "kind": "physiological",
+   "layer": "L2",
+   "units": "min/night",
+   "instrument": "polysomnography or wearable",
+   "n1_proxy": "wearable stages",
+   "refers_to": [
+    "P047"
+   ]
+  },
+  {
+   "id": "M026",
+   "name": "REM_min",
+   "full_name": "REM Sleep Minutes",
+   "kind": "physiological",
+   "layer": "L3",
+   "units": "min/night",
+   "instrument": "polysomnography or wearable",
+   "n1_proxy": "wearable stages",
+   "refers_to": [
+    "P033",
+    "P036",
+    "S003"
+   ]
+  },
+  {
+   "id": "M027",
+   "name": "GI_diary",
+   "full_name": "GI Symptom Diary with Bristol Scale",
+   "kind": "behavioral",
+   "layer": "L0",
+   "units": "Bristol type + freq/day",
+   "instrument": "档板 diary UI",
+   "n1_proxy": "GI/head/body 0-10 triad + GI check",
+   "refers_to": [
+    "P001",
+    "P013",
+    "P021"
+   ]
+  },
+  {
+   "id": "M028",
+   "name": "sleep_diary",
+   "full_name": "Subjective Sleep Diary",
+   "kind": "behavioral",
+   "layer": "L5",
+   "units": "Likert + hours",
+   "instrument": "档板 diary UI",
+   "n1_proxy": "AM delta comparison",
+   "refers_to": []
+  },
+  {
+   "id": "M029",
+   "name": "stim_burst",
+   "full_name": "Rhythmic Motor Stim Burst Count",
+   "kind": "behavioral",
+   "layer": "L1",
+   "units": "bursts/day",
+   "instrument": "wearable accelerometer",
+   "n1_proxy": "accel rhythmic-pattern detector",
+   "refers_to": [
+    "P013",
+    "P024",
+    "S002"
+   ]
+  },
+  {
+   "id": "M030",
+   "name": "labeling_depth",
+   "full_name": "Vocabulary Entropy in Free Text",
+   "kind": "custom",
+   "layer": "L4",
+   "units": "bits",
+   "instrument": "LIWC-style classifier on own text",
+   "n1_proxy": "labeling_depth from /translate sessions",
+   "refers_to": [
+    "S001",
+    "S004"
+   ]
+  },
+  {
+   "id": "M031",
+   "name": "READ_ratio",
+   "full_name": "READ to WRITE Outgoing Message Ratio",
+   "kind": "custom",
+   "layer": "L4",
+   "units": "ratio",
+   "instrument": "outgoing message classifier",
+   "n1_proxy": "daily READ:WRITE on own messages",
+   "refers_to": [
+    "P028",
+    "P051",
+    "P053",
+    "S005"
+   ]
+  },
+  {
+   "id": "M032",
+   "name": "post_meal_delta",
+   "full_name": "Post-Meal HRV Drop",
+   "kind": "custom",
+   "layer": "L2",
+   "units": "RMSSD ms delta",
+   "instrument": "HRV +30/+60/+90 after meal",
+   "n1_proxy": "HRV peak latency post-lunch",
+   "refers_to": [
+    "P060",
+    "P069",
+    "S006"
+   ]
+  },
+  {
+   "id": "M033",
+   "name": "emotion_lag",
+   "full_name": "Stimulus to Verbalization Latency",
+   "kind": "custom",
+   "layer": "L4",
+   "units": "seconds",
+   "instrument": "keystroke timing + event log",
+   "n1_proxy": "keystroke logging to mood snapshot delta",
+   "refers_to": [
+    "S007"
+   ]
+  }
+ ],
+ "interventions": [
+  {
+   "id": "I001",
+   "name": "translate",
+   "full_name": "AI READ-format Translation Session",
+   "kind": "ai_mediated",
+   "pathway": "P3b",
+   "layer_target": [
+    "L3",
+    "L4"
+   ],
+   "mechanism": "An LLM running in strict READ-only mode ingests raw affective input and emits pre-labeled English; the user's L4 gets (raw, label) training pairs without having to generate the label itself.",
+   "accessibility": "self-administered",
+   "evidence": "proposed",
+   "dose": "15 min/day, daily; READ-format enforced",
+   "refers_to": [
+    "C001",
+    "C010",
+    "P005",
+    "P018",
+    "P027",
+    "P028",
+    "P043",
+    "P053",
+    "P057",
+    "P058",
+    "P059",
+    "P070"
+   ]
+  },
+  {
+   "id": "I002",
+   "name": "taVNS",
+   "full_name": "Transcutaneous Auricular Vagus Nerve Stimulation",
+   "kind": "device",
+   "pathway": "direct vagal",
+   "layer_target": [
+    "L2"
+   ],
+   "mechanism": "Low-amplitude electrical stimulation of the auricular branch of the vagus nerve drives NTS → LC, reduces LC tonic overdrive, and activates the cholinergic anti-inflammatory pathway peripherally.",
+   "accessibility": "device_assisted",
+   "evidence": "clinical_trial",
+   "dose": "20 Hz, 20 min/day, ear clip",
+   "refers_to": [
+    "C005",
+    "C008",
+    "P020",
+    "P021",
+    "P022",
+    "P023",
+    "P045",
+    "P047",
+    "P066",
+    "P067"
+   ]
+  },
+  {
+   "id": "I003",
+   "name": "stim_permit",
+   "full_name": "Permitted Self-Initiated Motor Stim",
+   "kind": "behavioral",
+   "pathway": "P4",
+   "layer_target": [
+    "L1",
+    "L2"
+   ],
+   "mechanism": "Rhythmic motor output (rocking, pacing, fidgeting, tapping) generates low-dimensional self-predictable afferent signal; prediction error approaches zero, LC phasic quiets, and regulation improves without cognitive effort.",
+   "accessibility": "self-administered",
+   "evidence": "proposed",
+   "dose": "ad libitum when desired",
+   "refers_to": [
+    "C009",
+    "P013",
+    "P024",
+    "P025",
+    "P026",
+    "P054",
+    "P055",
+    "P056",
+    "S002"
+   ]
+  },
+  {
+   "id": "I004",
+   "name": "probiotic_JB1",
+   "full_name": "Lactobacillus rhamnosus JB-1 Probiotic",
+   "kind": "dietary",
+   "pathway": "gut-LC-PFC triangle",
+   "layer_target": [
+    "L0"
+   ],
+   "mechanism": "Gut microbe signals the vagal afferent → NTS → LC path, reducing LC firing (vagotomy abolishes the effect), raising short-chain fatty acids, and normalizing enterochromaffin 5-HT release.",
+   "accessibility": "self-administered",
+   "evidence": "clinical_trial",
+   "dose": "standard probiotic schedule, 8+ weeks",
+   "refers_to": [
+    "C005",
+    "C006",
+    "P050",
+    "P063"
+   ]
+  },
+  {
+   "id": "I005",
+   "name": "IF_16_8",
+   "full_name": "16:8 Intermittent Fasting",
+   "kind": "dietary",
+   "pathway": "circadian",
+   "layer_target": [
+    "L0",
+    "L2"
+   ],
+   "mechanism": "A longer fasting window produces fewer post-meal EC firing bursts and fewer daily LC tonic excursions, quieting the autonomic bus at its source.",
+   "accessibility": "self-administered",
+   "evidence": "proposed",
+   "dose": "16 h fast / 8 h feed, daily",
+   "refers_to": [
+    "P072"
+   ]
+  },
+  {
+   "id": "I006",
+   "name": "sleep_artifact",
+   "full_name": "Pre-Sleep Decompression Artifact",
+   "kind": "behavioral",
+   "pathway": "P3b / sleep",
+   "layer_target": [
+    "L3",
+    "L4",
+    "L5"
+   ],
+   "mechanism": "20-minute pre-bed routine: 5 min free dump, 5 min LLM READ decomposition, 5 min passive label reading, 5 min one-sentence save. Drains residual unlabeled affect before the REM retry queue engages.",
+   "accessibility": "self-administered",
+   "evidence": "proposed",
+   "dose": "20 min before sleep, nightly (phase D+)",
+   "refers_to": [
+    "P034",
+    "P049",
+    "S003",
+    "S004"
+   ]
+  },
+  {
+   "id": "I007",
+   "name": "structured_music",
+   "full_name": "Structured Music Composition or Improvisation",
+   "kind": "behavioral",
+   "pathway": "P3",
+   "layer_target": [
+    "L4"
+   ],
+   "mechanism": "Structured creative production acts as an externalized L4 labeling; the composition itself is the compiled emotion, complete at the instrument rather than at the cortex.",
+   "accessibility": "self-administered",
+   "evidence": "proposed",
+   "dose": "variable, minimum 20 min/session",
+   "refers_to": [
+    "P009",
+    "P017"
+   ]
+  },
+  {
+   "id": "I008",
+   "name": "creative_practice",
+   "full_name": "Creative Practice (Writing, Visual Art, Mathematics)",
+   "kind": "behavioral",
+   "pathway": "P3",
+   "layer_target": [
+    "L4"
+   ],
+   "mechanism": "An external MES for processing affective work orders; same feed-forward mechanism as structured music but via a different modality.",
+   "accessibility": "self-administered",
+   "evidence": "proposed",
+   "dose": "variable, regular practice",
+   "refers_to": [
+    "P002",
+    "P010",
+    "P017"
+   ]
+  },
+  {
+   "id": "I009",
+   "name": "ondansetron",
+   "full_name": "Ondansetron (5-HT3R Antagonist)",
+   "kind": "pharmaco",
+   "pathway": "EC blockade",
+   "layer_target": [
+    "L0",
+    "L1"
+   ],
+   "mechanism": "Blocks the vagal afferent 5-HT3R, silencing the EC to NTS input. Predicted to relieve symptoms but prevent mechanism resolution — a useful falsifier for the bus-traffic claim.",
+   "accessibility": "prescribed",
+   "evidence": "clinical_trial",
+   "dose": "per prescription",
+   "refers_to": [
+    "C006",
+    "P061"
+   ]
+  },
+  {
+   "id": "I010",
+   "name": "SSRI",
+   "full_name": "Selective Serotonin Reuptake Inhibitor",
+   "kind": "pharmaco",
+   "pathway": "dual LC / EC",
+   "layer_target": [
+    "L0",
+    "L2"
+   ],
+   "mechanism": "Acts on both peripheral 5-HT in EC and central 5-HT in LC; ETH predicts a dissociable LC-side versus EC-side effect signature that separates the two mechanisms.",
+   "accessibility": "prescribed",
+   "evidence": "clinical_trial",
+   "dose": "per prescription",
+   "refers_to": [
+    "P062"
+   ]
+  },
+  {
+   "id": "I011",
+   "name": "SSP",
+   "full_name": "Safe and Sound Protocol (Porges)",
+   "kind": "clinical_program",
+   "pathway": "ventral vagal",
+   "layer_target": [
+    "L2"
+   ],
+   "mechanism": "Filtered audio protocol targeting middle-ear muscle tone to upregulate the ventral vagal branch; predicted to outperform P3b specifically in mode B (CPTSD).",
+   "accessibility": "clinician-administered",
+   "evidence": "clinical_trial",
+   "dose": "per manufacturer protocol",
+   "refers_to": [
+    "C009",
+    "P032"
+   ]
+  },
+  {
+   "id": "I012",
+   "name": "breath_pace_6",
+   "full_name": "Six-Breath-Per-Minute Pacing",
+   "kind": "behavioral",
+   "pathway": "direct vagal",
+   "layer_target": [
+    "L2"
+   ],
+   "mechanism": "Breathing at resonance frequency (~0.1 Hz) maximizes respiratory sinus arrhythmia and HF-HRV power; direct parasympathetic amplification with no equipment.",
+   "accessibility": "self-administered",
+   "evidence": "supported",
+   "dose": "5 min at wake + as needed",
+   "refers_to": []
+  },
+  {
+   "id": "I013",
+   "name": "interoception_MAIA",
+   "full_name": "MAIA-based Interoceptive Awareness Training",
+   "kind": "behavioral",
+   "pathway": "P3b adjacent",
+   "layer_target": [
+    "L1",
+    "L3",
+    "L4"
+   ],
+   "mechanism": "Explicit interoceptive attention training raises the D2 (sensibility) and D3 (awareness) dimensions of interoception; a prerequisite scaffold for P3b rather than a substitute.",
+   "accessibility": "self-administered",
+   "evidence": "supported",
+   "dose": "10-20 min/day, 8+ weeks",
+   "refers_to": [
+    "C002"
+   ]
+  },
+  {
+   "id": "I014",
+   "name": "READ_only_therapy",
+   "full_name": "READ-Protocol-Only Psychotherapy",
+   "kind": "clinical_program",
+   "pathway": "READ discipline",
+   "layer_target": [
+    "L3",
+    "L4"
+   ],
+   "mechanism": "Therapist held to READ-format utterances — observations, offers, reflections — and forbidden from WRITE commands or homework directives. Reduces ACC error signal and keeps LC quiet during session.",
+   "accessibility": "clinician-administered",
+   "evidence": "proposed",
+   "dose": "weekly 50 min",
+   "refers_to": [
+    "P004",
+    "P028",
+    "P051",
+    "P052",
+    "P053"
+   ]
+  },
+  {
+   "id": "I015",
+   "name": "early_P3b",
+   "full_name": "Pediatric Early AI Translation",
+   "kind": "ai_mediated",
+   "pathway": "P3b · developmental",
+   "layer_target": [
+    "L3",
+    "L4"
+   ],
+   "mechanism": "Same as /translate but delivered during the uncinate fasciculus myelination window (ages 6-14) so the training shapes structural, not just functional, affect-labeling capacity.",
+   "accessibility": "self-administered",
+   "evidence": "proposed",
+   "dose": "weekly, 12+ months",
+   "refers_to": [
+    "C003",
+    "P030",
+    "P039",
+    "P059",
+    "P074"
+   ]
+  },
+  {
+   "id": "I016",
+   "name": "vagotomy",
+   "full_name": "Subdiaphragmatic Vagotomy",
+   "kind": "surgical",
+   "pathway": "lesion control",
+   "layer_target": [
+    "L2"
+   ],
+   "mechanism": "Surgical transection of the subdiaphragmatic vagus; research-only falsification test for the enteric affect routing claim in animal models.",
+   "accessibility": "research_only",
+   "evidence": "supported",
+   "dose": "single intervention",
+   "refers_to": [
+    "P012"
+   ]
+  },
+  {
+   "id": "I017",
+   "name": "pre_sleep_food",
+   "full_name": "Light Pre-Sleep Food",
+   "kind": "dietary",
+   "pathway": "circadian · glymphatic",
+   "layer_target": [
+    "L0",
+    "L2"
+   ],
+   "mechanism": "A light pre-sleep carbohydrate may reduce nighttime LC tonic via fewer EC bursts, potentially improving glymphatic access during NREM3. Speculative, explicitly flagged.",
+   "accessibility": "self-administered",
+   "evidence": "proposed",
+   "dose": "small carbohydrate, 1-2 h before sleep",
+   "refers_to": [
+    "P071"
+   ]
+  },
+  {
+   "id": "I018",
+   "name": "withdraw_P3",
+   "full_name": "Creative Withdrawal (Negative Control)",
+   "kind": "behavioral",
+   "pathway": "P3 removal",
+   "layer_target": [
+    "L4"
+   ],
+   "mechanism": "Not a treatment — the absence of P3 activity as a falsification test. Removing creative output predicts GI worsening within 2-4 weeks.",
+   "accessibility": "observational",
+   "evidence": "proposed",
+   "dose": "intentional P3 gap",
+   "refers_to": [
+    "P010"
+   ]
+  }
+ ],
+ "references": [
+  {
+   "id": "R001",
+   "authors": [
+    "Barrett"
+   ],
+   "year": 2016,
+   "title": "The theory of constructed emotion",
+   "journal": "Annu Rev Psych",
+   "domain": "predictive coding",
+   "cited_by": [
+    "C001"
+   ]
+  },
+  {
+   "id": "R002",
+   "authors": [
+    "Seth",
+    "Friston"
+   ],
+   "year": 2016,
+   "title": "Active interoceptive inference and the emotional brain",
+   "journal": "Phil Trans R Soc B",
+   "domain": "active inference",
+   "cited_by": [
+    "C001"
+   ]
+  },
+  {
+   "id": "R003",
+   "authors": [
+    "Paulus",
+    "Stein"
+   ],
+   "year": 2010,
+   "title": "Interoception in anxiety and depression",
+   "journal": "Brain Struct Funct",
+   "domain": "interoception",
+   "cited_by": [
+    "C001",
+    "C002"
+   ]
+  },
+  {
+   "id": "R004",
+   "authors": [
+    "Farb"
+   ],
+   "year": 2015,
+   "title": "Interoception, contemplative practice, and health",
+   "journal": "Front Psychol",
+   "domain": "interoception",
+   "cited_by": [
+    "C001",
+    "C002"
+   ]
+  },
+  {
+   "id": "R005",
+   "authors": [
+    "Greenwood-Van Meerveld",
+    "Garfinkel"
+   ],
+   "year": 2025,
+   "title": "Interoception: four dimensions",
+   "journal": "Annu Rev Psych 76",
+   "domain": "interoception",
+   "cited_by": [
+    "C002"
+   ]
+  },
+  {
+   "id": "R006",
+   "authors": [
+    "Lebel"
+   ],
+   "year": 2012,
+   "title": "Diffusion tensor imaging of white matter tract evolution over the lifespan",
+   "journal": "NeuroImage",
+   "domain": "UF development",
+   "cited_by": [
+    "C003",
+    "P037"
+   ]
+  },
+  {
+   "id": "R007",
+   "authors": [
+    "Waller"
+   ],
+   "year": 2017,
+   "title": "White matter tract development and callous-unemotional traits",
+   "journal": "J Am Acad Child Adolesc Psychiatry",
+   "domain": "UF pathology",
+   "cited_by": [
+    "C003"
+   ]
+  },
+  {
+   "id": "R008",
+   "authors": [
+    "Fields"
+   ],
+   "year": 2008,
+   "title": "White matter in learning, cognition, and psychiatric disorders",
+   "journal": "Trends Neurosci",
+   "domain": "use-dependent myelination",
+   "cited_by": [
+    "C003",
+    "P030"
+   ]
+  },
+  {
+   "id": "R009",
+   "authors": [
+    "Fields"
+   ],
+   "year": 2015,
+   "title": "A new mechanism of nervous system plasticity",
+   "journal": "Nat Rev Neurosci",
+   "domain": "use-dependent myelination",
+   "cited_by": [
+    "C003"
+   ]
+  },
+  {
+   "id": "R010",
+   "authors": [
+    "Craig"
+   ],
+   "year": 2002,
+   "title": "How do you feel? Interoception: the sense of the physiological condition of the body",
+   "journal": "Nat Rev Neurosci",
+   "domain": "insula",
+   "cited_by": [
+    "C007"
+   ]
+  },
+  {
+   "id": "R011",
+   "authors": [
+    "Craig"
+   ],
+   "year": 2009,
+   "title": "How do you feel — now? The anterior insula and human awareness",
+   "journal": "Nat Rev Neurosci",
+   "domain": "insula",
+   "cited_by": [
+    "C007"
+   ]
+  },
+  {
+   "id": "R012",
+   "authors": [
+    "Bird",
+    "Cook"
+   ],
+   "year": 2013,
+   "title": "Mixed emotions: the contribution of alexithymia to the emotional symptoms of autism",
+   "journal": "Transl Psychiatry",
+   "domain": "alexithymia",
+   "cited_by": [
+    "C007",
+    "P065"
+   ]
+  },
+  {
+   "id": "R013",
+   "authors": [
+    "Quattrocki",
+    "Friston"
+   ],
+   "year": 2014,
+   "title": "Autism, oxytocin, and interoception",
+   "journal": "Neurosci Biobehav Rev",
+   "domain": "active inference + ASD",
+   "cited_by": [
+    "C007"
+   ]
+  },
+  {
+   "id": "R014",
+   "authors": [
+    "Aston-Jones",
+    "Cohen"
+   ],
+   "year": 2005,
+   "title": "An integrative theory of locus coeruleus-norepinephrine function: adaptive gain and optimal performance",
+   "journal": "Annu Rev Neurosci",
+   "domain": "LC-NE gain",
+   "cited_by": [
+    "C005"
+   ]
+  },
+  {
+   "id": "R015",
+   "authors": [
+    "Kim"
+   ],
+   "year": 2022,
+   "title": "Pupillometry in autism",
+   "journal": "review",
+   "domain": "pupillometry + ASD",
+   "cited_by": [
+    "C005",
+    "P041"
+   ]
+  },
+  {
+   "id": "R016",
+   "authors": [
+    "Polzer"
+   ],
+   "year": 2022,
+   "title": "Pupil dilation and autism",
+   "journal": "Psychophysiology",
+   "domain": "pupillometry + ASD",
+   "cited_by": [
+    "C005",
+    "P041"
+   ]
+  },
+  {
+   "id": "R017",
+   "authors": [
+    "Bast"
+   ],
+   "year": 2021,
+   "title": "Tonic and phasic pupil responses in ASD",
+   "journal": "Mol Autism",
+   "domain": "pupillometry + ASD",
+   "cited_by": [
+    "C005",
+    "P041"
+   ]
+  },
+  {
+   "id": "R018",
+   "authors": [
+    "Kaelberer",
+    "Bohorquez"
+   ],
+   "year": 2018,
+   "title": "A gut-brain neural circuit for nutrient sensory transduction",
+   "journal": "Science",
+   "domain": "neuropod cell",
+   "cited_by": [
+    "C006"
+   ]
+  },
+  {
+   "id": "R019",
+   "authors": [
+    "Bellono"
+   ],
+   "year": 2017,
+   "title": "Enterochromaffin cells are gut chemosensors that couple to sensory neural pathways",
+   "journal": "Cell",
+   "domain": "EC excitability",
+   "cited_by": [
+    "C006",
+    "P061"
+   ]
+  },
+  {
+   "id": "R020",
+   "authors": [
+    "Wang"
+   ],
+   "year": 2017,
+   "title": "Optogenetic stimulation of vagal afferents",
+   "journal": "Cell Rep",
+   "domain": "vagal circuit",
+   "cited_by": [
+    "C006"
+   ]
+  },
+  {
+   "id": "R021",
+   "authors": [
+    "Alcaino"
+   ],
+   "year": 2018,
+   "title": "Piezo2 in enterochromaffin cell mechanotransduction",
+   "journal": "PNAS",
+   "domain": "mechanosensor",
+   "cited_by": [
+    "C006",
+    "P060"
+   ]
+  },
+  {
+   "id": "R022",
+   "authors": [
+    "Tracey"
+   ],
+   "year": 2002,
+   "title": "The inflammatory reflex",
+   "journal": "Nature",
+   "domain": "CAP",
+   "cited_by": [
+    "C008"
+   ]
+  },
+  {
+   "id": "R023",
+   "authors": [
+    "Tracey"
+   ],
+   "year": 2007,
+   "title": "Physiology and immunology of the cholinergic anti-inflammatory pathway",
+   "journal": "J Clin Invest",
+   "domain": "CAP",
+   "cited_by": [
+    "C008",
+    "P066"
+   ]
+  },
+  {
+   "id": "R024",
+   "authors": [
+    "Bravo"
+   ],
+   "year": 2011,
+   "title": "Ingestion of Lactobacillus rhamnosus modulates brain GABA via vagus",
+   "journal": "PNAS",
+   "domain": "gut-brain axis",
+   "cited_by": [
+    "C005",
+    "P063"
+   ]
+  },
+  {
+   "id": "R025",
+   "authors": [
+    "Bonaz"
+   ],
+   "year": 2018,
+   "title": "The vagus nerve in the neuro-immune axis",
+   "journal": "Front Neurosci",
+   "domain": "vagal neuroimmune",
+   "cited_by": [
+    "C008"
+   ]
+  },
+  {
+   "id": "R026",
+   "authors": [
+    "Mayer"
+   ],
+   "year": 2022,
+   "title": "The gut-brain axis",
+   "journal": "Annu Rev Med",
+   "domain": "gut-brain overview",
+   "cited_by": [
+    "C005",
+    "C006"
+   ]
+  }
+ ]
+} ;
+const PAPER_DATA = {
+ "I": {
+  "claims_ref": [
+   "C001",
+   "C002",
+   "C003",
+   "C009"
+  ]
+ },
+ "II": {
+  "modes": [
+   {
+    "id": "A",
+    "name": "ASC+alex",
+    "model": "under-fit",
+    "lc_tonic": "high and chronic",
+    "lc_phasic": "blunted",
+    "routing": "broadband chronic caudal",
+    "gi_pattern": "IBS-M · functional motility",
+    "treatment": "broaden the model · P3b + MAIA training + taVNS"
+   },
+   {
+    "id": "B",
+    "name": "CPTSD",
+    "model": "over-fit (threat-narrow)",
+    "lc_tonic": "high and reactive",
+    "lc_phasic": "hyper-responsive to threat cues",
+    "routing": "narrowband acute bursts",
+    "gi_pattern": "IBS-D · urgent",
+    "treatment": "relax the model · SSP + safety exposure + somatic work"
+   },
+   {
+    "id": "C",
+    "name": "ADHD+alex",
+    "model": "over-predicts change",
+    "lc_tonic": "variable",
+    "lc_phasic": "suppressed, misses event markers",
+    "routing": "episodic caudal + food dysregulation",
+    "gi_pattern": "impulse eating · delayed satiety",
+    "treatment": "stabilize LC · external structure + stim permit"
+   },
+   {
+    "id": "H",
+    "name": "healthy",
+    "model": "mid fit",
+    "lc_tonic": "low dynamic",
+    "lc_phasic": "high on events, zero between",
+    "routing": "labeled at L4 · Complete",
+    "gi_pattern": "normal",
+    "treatment": "not required"
+   }
+  ],
+  "claims_ref": [
+   "C001",
+   "C002",
+   "C003",
+   "C004",
+   "C009",
+   "C010"
+  ]
+ },
+ "III": {
+  "cables": [
+   {
+    "id": "UF",
+    "name": "Uncinate Fasciculus",
+    "type": "white matter tract",
+    "endpoints": [
+     "amygdala",
+     "parahippocampus",
+     "temporal pole",
+     "OFC",
+     "vmPFC"
+    ],
+    "layers": [
+     "L3",
+     "L4"
+    ],
+    "bandwidth_metric": "M023",
+    "maturation_window": "rises through adolescence, FA peaks after age 30",
+    "plastic_after_30": false,
+    "failure_signature": "low FA · alexithymia · reduced in ASD, STB, CU traits",
+    "refers_to": [
+     "C003",
+     "P029",
+     "P030",
+     "P037"
+    ]
+   },
+   {
+    "id": "AI",
+    "name": "Anterior Insula Gradient",
+    "type": "cortical gradient + functional connectivity",
+    "endpoints": [
+     "posterior insula",
+     "mid insula",
+     "anterior insula",
+     "vmPFC",
+     "ACC"
+    ],
+    "layers": [
+     "L1",
+     "L2",
+     "L3",
+     "L4"
+    ],
+    "bandwidth_metric": "M024",
+    "maturation_window": "lifelong plasticity (Craig gradient)",
+    "plastic_after_30": true,
+    "failure_signature": "blunted anterior activation · preserved posterior · AI-vmPFC FC inversely tracks TAS-20",
+    "refers_to": [
+     "C002",
+     "C007",
+     "P064",
+     "P065"
+    ]
+   },
+   {
+    "id": "HEP",
+    "name": "Heartbeat Evoked Potential",
+    "type": "cortical readout of vagal afferent",
+    "endpoints": [
+     "vagus",
+     "NTS",
+     "thalamus",
+     "insula",
+     "fronto-central cortex"
+    ],
+    "layers": [
+     "L2",
+     "L3",
+     "L4"
+    ],
+    "bandwidth_metric": "M001",
+    "maturation_window": "signal exists from birth, amplitude modulated by attention and state",
+    "plastic_after_30": true,
+    "failure_signature": "attenuated amplitude in alexithymia, depersonalization, anxiety, ASD",
+    "refers_to": [
+     "C004",
+     "P015",
+     "P016",
+     "P019"
+    ]
+   }
+  ],
+  "claims_ref": [
+   "C002",
+   "C003",
+   "C004",
+   "C007"
+  ]
+ },
+ "IV": {
+  "knob_states": [
+   {
+    "id": "LC_rest",
+    "tonic": "low",
+    "phasic": "high-on-event",
+    "mode": "H healthy dynamic",
+    "subjective": "calm and focused, attention is cheap",
+    "refers_to": [
+     "C005"
+    ]
+   },
+   {
+    "id": "LC_overdrive",
+    "tonic": "high and chronic",
+    "phasic": "blunted",
+    "mode": "A ASC+alex",
+    "subjective": "broadband over-arousal, nothing stands out",
+    "refers_to": [
+     "C005",
+     "C009",
+     "P041",
+     "P042"
+    ]
+   },
+   {
+    "id": "LC_reactive",
+    "tonic": "high and reactive",
+    "phasic": "hyper-responsive to threat cues",
+    "mode": "B CPTSD",
+    "subjective": "edge and startle, everything is a threat",
+    "refers_to": [
+     "C009"
+    ]
+   },
+   {
+    "id": "LC_variable",
+    "tonic": "variable",
+    "phasic": "suppressed, misses event markers",
+    "mode": "C ADHD+alex",
+    "subjective": "drifting and event-blind, time is strange",
+    "refers_to": [
+     "C009",
+     "P046"
+    ]
+   }
+  ],
+  "triangle": [
+   {
+    "name": "gut-LC-PFC closed loop",
+    "nodes": [
+     "gut",
+     "EC",
+     "vagal_afferent",
+     "NTS",
+     "LC",
+     "cortex",
+     "vagal_efferent",
+     "CAP",
+     "macrophage"
+    ],
+    "upstream_arm": "gut inflammation → EC 5-HT → vagal afferent → NTS → LC tonic ↑",
+    "downstream_arm": "cortex → vagal efferent → alpha-7 nAChR → cytokine release ↓",
+    "cut_points": [
+     "I004 probiotic_JB1",
+     "I002 taVNS",
+     "I001 translate"
+    ],
+    "refers_to": [
+     "C005",
+     "C006",
+     "C008",
+     "P050",
+     "P063",
+     "P066"
+    ]
+   }
+  ],
+  "claims_ref": [
+   "C001",
+   "C005",
+   "C006",
+   "C008",
+   "C009",
+   "C010"
+  ]
+ },
+ "V": {
+  "boundary_circuit": [
+   {
+    "id": "EC_ascending",
+    "name": "EC 5-HT3R ascending arm",
+    "latency": "< 100 ms",
+    "steps": [
+     "lumen state",
+     "EC cell depolarization",
+     "5-HT release",
+     "vagal 5-HT3R",
+     "NTS",
+     "LC",
+     "amygdala",
+     "cortex"
+    ],
+    "channels": [
+     "Piezo2 (mechano)",
+     "Nav1.3",
+     "Cav1-3"
+    ],
+    "synapse": "glutamatergic (neuropod cell)",
+    "layers": [
+     "L0",
+     "L1",
+     "L2",
+     "L3"
+    ],
+    "refers_to": [
+     "C006",
+     "P008",
+     "P060",
+     "P061",
+     "P069"
+    ]
+   },
+   {
+    "id": "CAP_descending",
+    "name": "Cholinergic Anti-inflammatory Pathway",
+    "latency": "seconds to minutes",
+    "steps": [
+     "vmPFC descending tone",
+     "vagal efferent",
+     "acetylcholine release",
+     "alpha-7 nAChR on macrophage",
+     "cytokine downregulation"
+    ],
+    "effector": "alpha-7 nAChR on tissue macrophages",
+    "layers": [
+     "L0",
+     "L2",
+     "L4"
+    ],
+    "refers_to": [
+     "C008",
+     "P012",
+     "P066",
+     "P067",
+     "P068"
+    ]
+   },
+   {
+    "id": "probiotic_input",
+    "name": "Probiotic modulation of EC and SCFA",
+    "latency": "hours to days",
+    "steps": [
+     "lumen microbe (L. rhamnosus JB-1)",
+     "SCFA production",
+     "Tph1 expression",
+     "EC 5-HT normalization",
+     "vagal afferent firing normalization"
+    ],
+    "layers": [
+     "L0",
+     "L1",
+     "L2"
+    ],
+    "refers_to": [
+     "P050",
+     "P063"
+    ]
+   }
+  ],
+  "claims_ref": [
+   "C001",
+   "C002",
+   "C004",
+   "C005",
+   "C006",
+   "C008"
+  ]
+ },
+ "VI": {
+  "mode_treatment_map": [
+   {
+    "mode": "A",
+    "name": "ASC+alex",
+    "goal": "broaden the model",
+    "first_line": [
+     "I001",
+     "I013",
+     "I002"
+    ],
+    "second_line": [
+     "I007",
+     "I008",
+     "I003"
+    ],
+    "contraindicated": [],
+    "refers_to": [
+     "C009",
+     "C010",
+     "P032"
+    ]
+   },
+   {
+    "mode": "B",
+    "name": "CPTSD",
+    "goal": "relax the model",
+    "first_line": [
+     "I011",
+     "I012",
+     "I003"
+    ],
+    "second_line": [
+     "I014",
+     "I001"
+    ],
+    "contraindicated": [
+     "I013"
+    ],
+    "refers_to": [
+     "C009",
+     "P032"
+    ]
+   },
+   {
+    "mode": "C",
+    "name": "ADHD+alex",
+    "goal": "stabilize LC",
+    "first_line": [
+     "I003",
+     "I005",
+     "I006"
+    ],
+    "second_line": [
+     "I001",
+     "I002"
+    ],
+    "contraindicated": [],
+    "refers_to": [
+     "C009",
+     "P046"
+    ]
+   },
+   {
+    "mode": "H",
+    "name": "healthy",
+    "goal": "not required",
+    "first_line": [],
+    "second_line": [],
+    "contraindicated": [],
+    "refers_to": [
+     "C009"
+    ]
+   }
+  ],
+  "phase_stack": [
+   {
+    "phase": "A",
+    "name": "baseline",
+    "interventions": [],
+    "days": 14,
+    "refers_to": [
+     "S001"
+    ]
+   },
+   {
+    "phase": "B",
+    "name": "P3b intensive",
+    "interventions": [
+     "I001"
+    ],
+    "days": 14,
+    "refers_to": [
+     "S001"
+    ]
+   },
+   {
+    "phase": "C",
+    "name": "stim permit",
+    "interventions": [
+     "I003"
+    ],
+    "days": 14,
+    "refers_to": [
+     "S002"
+    ]
+   },
+   {
+    "phase": "D",
+    "name": "sleep artifact",
+    "interventions": [
+     "I006"
+    ],
+    "days": 14,
+    "refers_to": [
+     "S003"
+    ]
+   },
+   {
+    "phase": "E",
+    "name": "combination",
+    "interventions": [
+     "I001",
+     "I003",
+     "I006"
+    ],
+    "days": 14,
+    "refers_to": [
+     "S004"
+    ]
+   }
+  ],
+  "claims_ref": [
+   "C001",
+   "C005",
+   "C008",
+   "C009",
+   "C010"
+  ]
+ },
+ "VII": {
+  "prediction_tiers": [
+   {
+    "tier": 1,
+    "name": "falsifiers",
+    "description": "If these fail, the core theory is structurally broken.",
+    "predictions": [
+     "P001",
+     "P012",
+     "P015",
+     "P061"
+    ],
+    "refers_to": [
+     "C001",
+     "C004",
+     "C006"
+    ]
+   },
+   {
+    "tier": 2,
+    "name": "differentiators",
+    "description": "If these fail, the mode-split lacks clinical utility.",
+    "predictions": [
+     "P031",
+     "P032",
+     "P046",
+     "P064"
+    ],
+    "refers_to": [
+     "C007",
+     "C009"
+    ]
+   },
+   {
+    "tier": 3,
+    "name": "dose-response",
+    "description": "Quantitative thresholds that calibrate the measurement battery.",
+    "predictions": [
+     "P019",
+     "P027",
+     "P057",
+     "P074"
+    ],
+    "refers_to": [
+     "C003",
+     "C010"
+    ]
+   },
+   {
+    "tier": 4,
+    "name": "n=1 self-test",
+    "description": "Self-protocol predictions; failure redesigns the protocol, not the theory.",
+    "predictions": [
+     "S001",
+     "S002",
+     "S003",
+     "S004",
+     "S005",
+     "S006",
+     "S007"
+    ],
+    "refers_to": []
+   }
+  ],
+  "claims_ref": [
+   "C001",
+   "C003",
+   "C004",
+   "C005",
+   "C006",
+   "C007",
+   "C008",
+   "C009",
+   "C010"
+  ]
+ },
+ "VIII": {
+  "phases": [
+   {
+    "id": "A",
+    "days": 14,
+    "name": "baseline",
+    "intervention": null,
+    "primary": [
+     "HRV_AM",
+     "GI_daily",
+     "labeling_depth"
+    ]
+   },
+   {
+    "id": "B",
+    "days": 14,
+    "name": "P3b intensive",
+    "intervention": "/translate 15min/day, READ-format forced",
+    "primary": [
+     "labeling_depth",
+     "GI_daily",
+     "HRV_AM"
+    ]
+   },
+   {
+    "id": "C",
+    "days": 14,
+    "name": "stim permit",
+    "intervention": "conscious rhythmic motor; rocking chair; fidget",
+    "primary": [
+     "HRV_AM",
+     "HR_rest_AM",
+     "stim_burst_n"
+    ]
+   },
+   {
+    "id": "D",
+    "days": 14,
+    "name": "sleep artifact",
+    "intervention": "pre-bed 20min 档板 decompression",
+    "primary": [
+     "sleep_REM_min",
+     "GI_daily"
+    ]
+   },
+   {
+    "id": "E",
+    "days": 14,
+    "name": "combination",
+    "intervention": "B + C + D in parallel",
+    "primary": [
+     "HRV_AM",
+     "GI_daily",
+     "labeling_depth",
+     "sleep_REM_min"
+    ]
+   }
+  ],
+  "routine": [
+   {
+    "slot": "wake",
+    "offset_h": 0,
+    "do": [
+     "5min supine HRV baseline",
+     "pupil photo 30cm fixed flash",
+     "3-word mood",
+     "GI/head/body 0-10 triad"
+    ]
+   },
+   {
+    "slot": "cortisol",
+    "offset_h": 0.5,
+    "do": [
+     "+30min HR baseline as cortisol proxy"
+    ]
+   },
+   {
+    "slot": "morning",
+    "offset_h": 2,
+    "do": [
+     "keystroke logging on",
+     "continuous HRV"
+    ]
+   },
+   {
+    "slot": "pre-lunch",
+    "offset_h": 4.5,
+    "do": [
+     "fasted 5min HRV",
+     "mood snapshot"
+    ]
+   },
+   {
+    "slot": "post-lunch",
+    "offset_h": 5.5,
+    "do": [
+     "HRV peak latency +30/+60/+90",
+     "GI check",
+     "pupil photo"
+    ]
+   },
+   {
+    "slot": "evening",
+    "offset_h": 8,
+    "do": [
+     "work log stats",
+     "/translate 15min local LLM"
+    ]
+   },
+   {
+    "slot": "night",
+    "offset_h": 12,
+    "do": [
+     "mood snapshot",
+     "档板 reflection",
+     "pre-sleep artifact 20min"
+    ]
+   },
+   {
+    "slot": "sleep",
+    "offset_h": 14,
+    "do": [
+     "wearable stages",
+     "AM delta comparison"
+    ]
+   }
+  ]
+ },
+ "IX": {
+  "fixed_point": [
+   {
+    "id": "FP001",
+    "claim": "The ETH corpus is a work order processed by the P3b pathway it describes.",
+    "evidence": "the repo exists in its current form",
+    "falsifiable_by": "demonstrating that P3b mechanism is not what produced the writing",
+    "layer": "L5",
+    "refers_to": [
+     "C001",
+     "C010"
+    ]
+   },
+   {
+    "id": "FP002",
+    "claim": "The three-role contract is an L5 phenomenon: witnessing code, paper, and docs as one enterprise.",
+    "evidence": "every .md file in the repo obeys the contract",
+    "falsifiable_by": "finding a file that satisfies only one role without being an appendix",
+    "layer": "L5",
+    "refers_to": [
+     "C001"
+    ]
+   },
+   {
+    "id": "FP003",
+    "claim": "The swarm topology is isomorphic to the framework topology it tests.",
+    "evidence": "the 11-agent coordinator IS the L3-to-L4 gate; the 31-agent cells ARE the six layers",
+    "falsifiable_by": "demonstrating that a non-isomorphic swarm topology catches more bugs",
+    "layer": "L5",
+    "refers_to": [
+     "C001",
+     "C009"
+    ]
+   }
+  ],
+  "claims_ref": [
+   "C001",
+   "C002",
+   "C003",
+   "C004",
+   "C005",
+   "C006",
+   "C007",
+   "C008",
+   "C009",
+   "C010"
+  ]
+ }
+} ;
+</script>
+
+
+<script>
+/* ─────────────────────────────────────────────────────────────
+   PAPERS_META · static descriptors for the 9 papers
+   ───────────────────────────────────────────────────────────── */
+const PAPERS_META = [
+ {num:"I",   title:"Foundation",          file:"parts/I-foundation.md",     ring:6, layers:[0,1,2,3,4,5], per:4,  cen:2,
+  desc:"The ISA-95 skeleton. Six layers, five pathways, PACK-ML states on affect. The core claim: gut symptoms are the downstream dump of affect the cortex could not label."},
+ {num:"II",  title:"Predictive Coding",   file:"parts/II-predictive-coding.md", ring:4, layers:[1,2,3,4], per:7, cen:6,
+  desc:"Active inference reframe. L3→L4 is prediction-error resolution, not a handshake. Alexithymia is an under-fit generative model. Ships the four-mode phase space (A/B/C/H)."},
+ {num:"III", title:"Physical Cables",     file:"parts/III-physical-cables.md", ring:3, layers:[1,2,3,4], per:7, cen:6,
+  desc:"Two parallel substrates: uncinate fasciculus (limbic-affective tract) and anterior insula gradient (interoceptive hub). HEP as cortical readout."},
+ {num:"IV",  title:"The Gain Knob",       file:"parts/IV-gain-knob.md",     ring:2, layers:[0,1,2,3,4], per:14, cen:4,
+  desc:"LC-NE adaptive gain. BPS and SEPR as knob readings. The gut-LC-PFC closed triangle. READ/WRITE × LC binding. Four named knob states."},
+ {num:"V",   title:"Molecular Boundary",  file:"parts/V-molecular-boundary.md", ring:0, layers:[0,1,2,3,4], per:17, cen:2,
+  desc:"EC neuropod cells, Piezo2 mechanosensor, 5-HT3R vagal synapse under 100ms. CAP closes the loop. The L0/L1 boundary is a circuit, not an actuator."},
+ {num:"VI",  title:"Interventions",       file:"parts/VI-interventions.md", ring:1, layers:[0,1,2,3,4,5], per:10, cen:11,
+  desc:"Five pathways, mode-treatment map, Paper VIII phase stack. Which intervention for which mode. Three loop cut points. Super-additive thesis."},
+ {num:"VII", title:"Predictions",         file:"parts/VII-predictions.md",  ring:5, layers:[0,1,2,3,4,5], per:14, cen:8,
+  desc:"81 predictions in four falsification tiers. Tier 1 kills the theory. Tier 2 kills the mode-split. Tier 3 recalibrates. Tier 4 redesigns the self-protocol."},
+ {num:"VIII",title:"Self Protocol",       file:"parts/VIII-self-protocol.md", ring:4, layers:[0,1,2,3,4,5], per:13, cen:6,
+  desc:"N=1. Five ABCDE phases, 70 days. Wearable HRV, phone-camera pupils, GI diary. Operational tomorrow. The subject is willing. The instruments are owned."},
+ {num:"IX",  title:"Synthesis",           file:"parts/IX-synthesis.md",     ring:6, layers:[0,1,2,3,4,5], per:10, cen:22,
+  desc:"L5 enters. The observer is the layer that decides whether the work order was Complete. The repo is a compiled gut. The theory is a fixed point."},
 ];
 
-const layerColors = ['--r0','--r1','--r2','--r3','--r4','--r5','--r6'];
-const layerGlyphs = ['●','⬛','〜','♡','△','◐','◯'];
+const SWARM_DATA = {
+ total: 141, passed: 141, failed: 0,
+ runners: [
+  {name:"test_swarm.py",           source:"store/01-layers.md",          agents:31, pass:31},
+  {name:"test_swarm_11.py",        source:"store/01-layers.md",          agents:11, pass:11},
+  {name:"test_swarm_paper1.py",    source:"parts/I-foundation.md",       agents:11, pass:11},
+  {name:"test_swarm_paper2.py",    source:"parts/II-predictive-coding.md", agents:11, pass:11},
+  {name:"test_swarm_paper3.py",    source:"parts/III-physical-cables.md",agents:11, pass:11},
+  {name:"test_swarm_paper4.py",    source:"parts/IV-gain-knob.md",       agents:11, pass:11},
+  {name:"test_swarm_paper5.py",    source:"parts/V-molecular-boundary.md", agents:11, pass:11},
+  {name:"test_swarm_paper6.py",    source:"parts/VI-interventions.md",   agents:11, pass:11},
+  {name:"test_swarm_paper7.py",    source:"parts/VII-predictions.md",    agents:11, pass:11},
+  {name:"test_swarm_paper8.py",    source:"parts/VIII-self-protocol.md", agents:11, pass:11},
+  {name:"test_swarm_paper9.py",    source:"parts/IX-synthesis.md",       agents:11, pass:11},
+ ],
+};
 
-const container = document.getElementById('papers');
+const LAYER_COLORS = ['--r0','--r1','--r2','--r3','--r4','--r5','--r6'];
+const LAYER_GLYPHS = ['●','⬛','〜','♡','△','◐','◯'];
+const RING_NAMES   = ['GROUND','SIGNAL','BUS','AFFECT','FORGE','IDENTITY','OBSERVER'];
 
-papers.forEach((p, i) => {
-  const card = document.createElement('div');
-  card.className = 'paper';
-  card.style.borderColor = `var(${p.color})`;
+/* helpers */
+const el = (tag, props={}, children=[]) => {
+ const n = document.createElement(tag);
+ for (const [k,v] of Object.entries(props)) {
+  if (k === 'class') n.className = v;
+  else if (k === 'style') Object.assign(n.style, v);
+  else if (k === 'onclick') n.onclick = v;
+  else if (k === 'dataset') Object.assign(n.dataset, v);
+  else if (k === 'html') n.innerHTML = v;
+  else n.setAttribute(k, v);
+ }
+ (Array.isArray(children)?children:[children]).forEach(c => {
+  if (c == null || c === false) return;
+  n.appendChild(typeof c === 'string' ? document.createTextNode(c) : c);
+ });
+ return n;
+};
+const byId = (coll, id) => coll?.find(x => x.id === id);
+const idKind = (id) => ({C:'claim',P:'prediction',M:'metric',I:'intervention',R:'reference',L:'layer',S:'prediction'}[id?.[0]]);
+const flash = (elm) => { if(elm){elm.classList.remove('eth-highlight');void elm.offsetWidth;elm.classList.add('eth-highlight');} };
+const navigateTo = (id) => {
+ const t = document.getElementById(id);
+ if (t) { t.scrollIntoView({behavior:'smooth',block:'center'}); flash(t); }
+};
+</script>
 
-  const dots = p.layers.map(l =>
-    `<span class="dot" style="background:var(${layerColors[l]})" title="L${l} ${layerGlyphs[l]}"></span>`
-  ).join('');
 
-  card.innerHTML = `
-    <div class="num">Paper ${p.num}</div>
-    <div class="title" style="color:var(${p.color})">${p.title}</div>
-    <div class="desc">${p.desc}</div>
-    <div class="meta">
-      <span class="glyph">${p.layers.map(l => layerGlyphs[l]).join(' ')}</span>
-      <span class="layers">${dots}</span>
-      <span style="margin-left:1rem">${p.per}:${p.cen} per:cen</span>
-    </div>
-    <div class="content-panel" id="content-${i}">loading...</div>
-  `;
+<script>
+/* ─────────────────────────────────────────────────────────────
+   UDT_REGISTRY · atoms
+   Ignition-Perspective-style: {type, props, children}
+   ───────────────────────────────────────────────────────────── */
+const UDT = {};
 
-  card.addEventListener('click', async () => {
-    const panel = document.getElementById('content-' + i);
-    if (panel.classList.contains('visible')) {
-      panel.classList.remove('visible');
-      card.classList.remove('active');
-      return;
-    }
-    // close others
-    document.querySelectorAll('.content-panel.visible').forEach(el => {
-      el.classList.remove('visible');
-      el.parentElement.classList.remove('active');
-    });
-    // load content
-    if (panel.dataset.loaded !== 'true') {
-      try {
-        const resp = await fetch(p.file);
-        if (resp.ok) {
-          panel.textContent = await resp.text();
-        } else {
-          panel.textContent = '(file not found — serve this directory with a local HTTP server)';
-        }
-      } catch(e) {
-        panel.textContent = '(fetch failed — open with: python3 -m http.server)';
-      }
-      panel.dataset.loaded = 'true';
-    }
-    panel.classList.add('visible');
-    card.classList.add('active');
+/* ATOMS ─────────────────────────────────────────────────────── */
+UDT['eth.atom.ring-dot'] = {
+ defaultProps: {layer:0, size:8},
+ render: p => el('span', {
+  class:'eth-dot'+(p.size>=12?' -large':''),
+  style:{background:`var(${LAYER_COLORS[p.layer]})`, width:p.size+'px', height:p.size+'px'},
+  title:`L${p.layer} ${LAYER_GLYPHS[p.layer]} ${RING_NAMES[p.layer]}`,
+ }),
+};
+
+UDT['eth.atom.glyph'] = {
+ defaultProps: {glyph:'●', layer:null, size:'normal'},
+ render: p => el('span', {
+  class:'eth-glyph'+(p.size==='large'?' -large':''),
+  style: p.layer!=null ? {color:`var(${LAYER_COLORS[p.layer]})`} : {},
+ }, p.glyph),
+};
+
+UDT['eth.atom.label'] = {
+ defaultProps: {text:'', variant:''},
+ render: p => el('span', {class:'eth-label ' + p.variant.split(/\s+/).map(v=>v?'-'+v:'').join(' ')}, p.text),
+};
+
+UDT['eth.atom.badge'] = {
+ defaultProps: {text:'', variant:'', href:null, id:null, title:null},
+ render: p => {
+  const attrs = {class:'eth-badge ' + p.variant.split(/\s+/).map(v=>v?'-'+v:'').join(' ')};
+  if (p.id) attrs.id = p.id;
+  if (p.title) attrs.title = p.title;
+  if (p.href) {
+   attrs.class += ' -link';
+   attrs.onclick = (ev)=>{ev.stopPropagation(); navigateTo(p.href);};
+  }
+  return el('span', attrs, p.text);
+ },
+};
+
+UDT['eth.atom.status-dot'] = {
+ defaultProps: {status:'pass', icon:'✓'},
+ render: p => el('span', {class:`eth-status-dot -${p.status}`}, p.icon || (p.status==='pass'?'✓':'✗')),
+};
+
+UDT['eth.atom.count'] = {
+ defaultProps: {value:0},
+ render: p => el('span', {class:'eth-count'}, String(p.value)),
+};
+
+UDT['eth.atom.bar-segment'] = {
+ defaultProps: {layer:0},
+ render: p => el('span', {
+  class:'eth-bar-segment',
+  style:{background:`var(${LAYER_COLORS[p.layer]})`},
+  title:`L${p.layer} ${RING_NAMES[p.layer]}`,
+ }),
+};
+
+/* MOLECULES ─────────────────────────────────────────────────── */
+UDT['eth.mol.ring-bar'] = {
+ defaultProps: {},
+ render: () => el('div', {class:'eth-ring-bar'},
+  [0,1,2,3,4,5,6].map(l => UDT['eth.atom.bar-segment'].render({layer:l}))),
+};
+
+UDT['eth.mol.layer-badge'] = {
+ defaultProps: {layerId:'L0'},
+ render: p => {
+  const idx = parseInt(p.layerId[1]);
+  const L = byId(STORE.layers, p.layerId) || {};
+  return el('span', {class:'eth-layer-badge', title:L.isa95 || ''}, [
+   UDT['eth.atom.ring-dot'].render({layer:idx, size:8}),
+   UDT['eth.atom.glyph'].render({glyph:LAYER_GLYPHS[idx], layer:idx}),
+   UDT['eth.atom.label'].render({text:p.layerId, variant:'small dim'}),
+  ]);
+ },
+};
+
+UDT['eth.mol.ref-badge-list'] = {
+ defaultProps: {ids:[]},
+ render: p => el('span', {class:'eth-row-refs'},
+  p.ids.map(id => UDT['eth.atom.badge'].render({text:id, variant:'', href:id, title:idKind(id)||''}))),
+};
+
+UDT['eth.mol.layer-dots'] = {
+ defaultProps: {layers:[]},
+ render: p => el('span', {style:{display:'inline-flex',gap:'3px'}},
+  p.layers.map(l => UDT['eth.atom.ring-dot'].render({
+    layer: typeof l === 'number' ? l : parseInt(l[1]),
+    size:8,
+  }))),
+};
+
+UDT['eth.mol.row-claim'] = {
+ defaultProps: {claim:{}},
+ render: p => {
+  const c = p.claim;
+  return el('div', {class:'eth-row', id:c.id}, [
+   UDT['eth.atom.badge'].render({text:c.id, variant:''}),
+   UDT['eth.atom.badge'].render({text:c.status, variant:'status ' + (c.status==='established'?'pass':c.status==='supported'?'pending':'')}),
+   el('span', {class:'-statement'}, c.statement),
+   c.tests?.length ? UDT['eth.mol.ref-badge-list'].render({ids:c.tests}) : null,
+  ]);
+ },
+};
+
+UDT['eth.mol.row-prediction'] = {
+ defaultProps: {prediction:{}},
+ render: p => {
+  const x = p.prediction;
+  return el('div', {class:'eth-row', id:x.id, dataset:{version:x.version,category:x.category}}, [
+   UDT['eth.atom.badge'].render({text:x.id, variant:''}),
+   UDT['eth.atom.badge'].render({text:x.version, variant:''}),
+   UDT['eth.atom.badge'].render({text:x.category, variant:'', title:''}),
+   el('span', {class:'-statement'}, x.statement),
+  ]);
+ },
+};
+
+UDT['eth.mol.row-metric'] = {
+ defaultProps: {metric:{}},
+ render: p => {
+  const m = p.metric;
+  return el('div', {class:'eth-row', id:m.id, dataset:{kind:m.kind,layer:m.layer}}, [
+   UDT['eth.atom.badge'].render({text:m.id, variant:''}),
+   el('span', {class:'-statement'}, [
+    el('b', {}, m.name),
+    el('span', {style:{color:'var(--dim)',marginLeft:'0.4rem',fontSize:'0.78rem'}}, m.full_name),
+    m.n1_proxy ? el('span', {style:{color:'var(--r4)',marginLeft:'0.4rem',fontSize:'0.72rem',fontStyle:'italic'}}, '· n=1: '+m.n1_proxy) : null,
+   ]),
+   UDT['eth.mol.layer-dots'].render({layers:[m.layer]}),
+   UDT['eth.atom.badge'].render({text:m.kind, variant:''}),
+   m.refers_to?.length ? UDT['eth.mol.ref-badge-list'].render({ids:m.refers_to}) : null,
+  ]);
+ },
+};
+
+UDT['eth.mol.row-intervention'] = {
+ defaultProps: {intervention:{}},
+ render: p => {
+  const i = p.intervention;
+  return el('div', {class:'eth-row', id:i.id, dataset:{kind:i.kind,pathway:i.pathway}}, [
+   UDT['eth.atom.badge'].render({text:i.id, variant:''}),
+   el('span', {class:'-statement'}, [
+    el('b', {}, i.name),
+    el('span', {style:{color:'var(--dim)',marginLeft:'0.4rem',fontSize:'0.78rem'}}, i.full_name),
+   ]),
+   UDT['eth.atom.badge'].render({text:i.pathway, variant:''}),
+   UDT['eth.mol.layer-dots'].render({layers:i.layer_target||[]}),
+   UDT['eth.atom.badge'].render({text:i.evidence, variant:'status ' + (i.evidence==='clinical_trial'?'pass':i.evidence==='supported'?'pending':'')}),
+   i.refers_to?.length ? UDT['eth.mol.ref-badge-list'].render({ids:i.refers_to}) : null,
+  ]);
+ },
+};
+
+UDT['eth.mol.row-reference'] = {
+ defaultProps: {reference:{}},
+ render: p => {
+  const r = p.reference;
+  return el('div', {class:'eth-row', id:r.id}, [
+   UDT['eth.atom.badge'].render({text:r.id, variant:''}),
+   el('span', {class:'-statement'}, [
+    el('b', {}, r.authors.join(', ') + ' ' + r.year),
+    el('span', {style:{color:'var(--dim)',marginLeft:'0.4rem',fontSize:'0.78rem',fontStyle:'italic'}}, r.title),
+   ]),
+   UDT['eth.atom.badge'].render({text:r.journal, variant:''}),
+   UDT['eth.atom.badge'].render({text:r.domain, variant:''}),
+   r.cited_by?.length ? UDT['eth.mol.ref-badge-list'].render({ids:r.cited_by}) : null,
+  ]);
+ },
+};
+
+UDT['eth.mol.row-layer'] = {
+ defaultProps: {layer:{}},
+ render: p => {
+  const L = p.layer;
+  const idx = parseInt(L.id[1]);
+  return el('div', {class:'eth-row', id:L.id, style:{borderLeft:`3px solid var(${LAYER_COLORS[idx]})`, paddingLeft:'0.7rem'}}, [
+   UDT['eth.atom.glyph'].render({glyph:L.glyph, layer:idx, size:'large'}),
+   el('span', {class:'-statement'}, [
+    el('b', {}, L.id+' · '+L.name),
+    el('span', {style:{color:'var(--dim)',marginLeft:'0.4rem'}}, L.maps_to?.join(', ')),
+   ]),
+   UDT['eth.atom.badge'].render({text:L.isa95, variant:''}),
+   UDT['eth.atom.label'].render({text:L.failure, variant:'small dim serif'}),
+  ]);
+ },
+};
+</script>
+
+
+<script>
+/* ─────────────────────────────────────────────────────────────
+   UDT_REGISTRY · organisms
+   ───────────────────────────────────────────────────────────── */
+
+UDT['eth.org.header'] = {
+ defaultProps: {},
+ render: () => el('header', {class:'eth-hero'}, [
+  el('h1', {}, 'ETH · 腸 Factory'),
+  el('div', {class:'eth-subtitle'}, 'Enteric Translation Hypothesis · Frumkin · 2026 · v1 + v2 + v3 + v4 + v5'),
+  el('div', {class:'eth-sigil'}, '● ⬛ 〜 ♡ △ ◐ ◯'),
+  UDT['eth.mol.ring-bar'].render({}),
+ ]),
+};
+
+UDT['eth.org.paper-panel'] = {
+ defaultProps: {paper:{}},
+ render: p => {
+  const m = p.paper;
+  const cssColor = `var(--r${m.ring})`;
+  const paperBlocks = PAPER_DATA[m.num] || {};
+  const claimsRef = paperBlocks.claims_ref || [];
+
+  // paper-specific data blocks (other than claims_ref)
+  const extraBlocks = Object.keys(paperBlocks).filter(k => k !== 'claims_ref');
+  const dataSections = extraBlocks.map(k => {
+   const data = paperBlocks[k];
+   return el('div', {class:'data-section'}, [
+    el('div', {class:'data-section-title'}, k + ' · ' + (Array.isArray(data) ? data.length + ' items' : '1 object')),
+    el('pre', {style:{fontSize:'0.72rem',color:'var(--dim)',whiteSpace:'pre-wrap'}},
+      JSON.stringify(data, null, 2).slice(0, 2000) + (JSON.stringify(data).length > 2000 ? '\n…' : '')),
+   ]);
   });
 
-  container.appendChild(card);
-});
+  const claimRows = claimsRef.map(cid => {
+   const c = byId(STORE.claims, cid);
+   return c ? UDT['eth.mol.row-claim'].render({claim:c}) : null;
+  }).filter(Boolean);
+
+  const panel = el('div', {
+   class:'eth-paper-panel', id:`paper-${m.num}`,
+   style:{borderLeftColor:cssColor},
+   dataset:{paperNum:m.num},
+  }, [
+   el('div', {class:'num'}, 'Paper ' + m.num),
+   el('div', {class:'title', style:{color:cssColor}}, m.title),
+   el('div', {class:'desc'}, m.desc),
+   el('div', {class:'meta-row'}, [
+    el('span', {class:'glyphs'}, m.layers.map(l=>LAYER_GLYPHS[l]).join(' ')),
+    el('span', {class:'dots'}, m.layers.map(l => UDT['eth.atom.ring-dot'].render({layer:l,size:8}))),
+    el('span', {class:'ratio'}, m.per + ' : ' + m.cen + ' per:cen'),
+    claimsRef.length ? el('span', {}, [
+     UDT['eth.atom.label'].render({text:'cites:', variant:'tiny dim'}),
+     ...claimsRef.map(cid => UDT['eth.atom.badge'].render({text:cid, variant:'', href:cid})),
+    ]) : null,
+   ]),
+   el('div', {class:'eth-paper-body'}, [
+    dataSections.length ? el('div', {class:'data-blocks'}, dataSections) : null,
+    claimRows.length ? el('div', {class:'data-section'}, [
+     el('div', {class:'data-section-title'}, 'Claims cited in this paper'),
+     ...claimRows,
+    ]) : null,
+    el('div', {class:'data-section'}, [
+     el('div', {class:'data-section-title'}, 'prose · from ' + m.file),
+     el('pre', {class:'prose', dataset:{src:m.file,loaded:'false'}}, '(click the card again or wait · prose loads lazily from ' + m.file + ')'),
+    ]),
+   ]),
+  ]);
+
+  panel.addEventListener('click', async (ev) => {
+   if (ev.target.closest('.eth-badge.-link')) return; // don't toggle when clicking badges
+   panel.classList.toggle('-open');
+   if (panel.classList.contains('-open')) {
+    const pre = panel.querySelector('pre.prose');
+    if (pre.dataset.loaded !== 'true') {
+     try {
+      const resp = await fetch(m.file);
+      pre.textContent = resp.ok ? await resp.text() : '(404 · serve locally: python3 -m http.server)';
+     } catch (e) {
+      pre.textContent = '(fetch failed · python3 -m http.server, then reload)';
+     }
+     pre.dataset.loaded = 'true';
+    }
+   }
+  });
+  return panel;
+ },
+};
+
+UDT['eth.org.paper-list'] = {
+ defaultProps: {},
+ render: () => el('section', {class:'eth-papers'},
+  PAPERS_META.map(p => UDT['eth.org.paper-panel'].render({paper:p}))),
+};
+
+UDT['eth.org.store-grid'] = {
+ defaultProps: {},
+ render: () => {
+  const summaries = [
+   {key:'layers', count:STORE.layers.length, color:'--r0', label:'layers'},
+   {key:'claims', count:STORE.claims.length, color:'--r3', label:'claims'},
+   {key:'predictions', count:STORE.predictions.length, color:'--r4', label:'predictions'},
+   {key:'metrics', count:STORE.metrics.length, color:'--r2', label:'metrics'},
+   {key:'interventions', count:STORE.interventions.length, color:'--r1', label:'interventions'},
+   {key:'references', count:STORE.references.length, color:'--r5', label:'references'},
+  ];
+  return el('div', {class:'eth-store-grid'},
+   summaries.map(s => el('div', {
+    class:'eth-store-card',
+    style:{borderLeftColor:`var(${s.color})`, cursor:'pointer'},
+    onclick: () => {
+     window.__setExplorerTab && window.__setExplorerTab(s.key);
+     document.getElementById('eth-explorer')?.scrollIntoView({behavior:'smooth'});
+    },
+   }, [
+    UDT['eth.atom.count'].render({value:s.count}),
+    UDT['eth.atom.label'].render({text:s.label, variant:'small dim'}),
+   ])));
+ },
+};
+
+UDT['eth.org.store-explorer'] = {
+ defaultProps: {},
+ render: () => {
+  const tabs = [
+   {key:'layers',       storeKey:'layers',       molType:'eth.mol.row-layer',        propKey:'layer'},
+   {key:'claims',       storeKey:'claims',       molType:'eth.mol.row-claim',        propKey:'claim'},
+   {key:'predictions',  storeKey:'predictions',  molType:'eth.mol.row-prediction',   propKey:'prediction'},
+   {key:'metrics',      storeKey:'metrics',      molType:'eth.mol.row-metric',       propKey:'metric'},
+   {key:'interventions',storeKey:'interventions',molType:'eth.mol.row-intervention', propKey:'intervention'},
+   {key:'references',   storeKey:'references',   molType:'eth.mol.row-reference',    propKey:'reference'},
+  ];
+  const tabBar = el('div', {class:'eth-explorer-tabs'});
+  const body = el('div', {class:'eth-explorer-body'});
+  const setTab = (key) => {
+   tabBar.querySelectorAll('.eth-explorer-tab').forEach(t=>t.classList.toggle('-active', t.dataset.key===key));
+   const tab = tabs.find(t=>t.key===key);
+   body.innerHTML = '';
+   STORE[tab.storeKey].forEach(item => {
+    const row = UDT[tab.molType].render({[tab.propKey]:item});
+    body.appendChild(row);
+   });
+  };
+  tabs.forEach(t => {
+   const btn = el('div', {
+    class:'eth-explorer-tab',
+    dataset:{key:t.key},
+    onclick: () => setTab(t.key),
+   }, [
+    UDT['eth.atom.label'].render({text:t.key, variant:''}),
+    el('span', {class:'tab-count'}, '· ' + STORE[t.storeKey].length),
+   ]);
+   tabBar.appendChild(btn);
+  });
+  window.__setExplorerTab = setTab;
+  setTimeout(()=>setTab('claims'), 0);
+  return el('section', {id:'eth-explorer', class:'eth-store-explorer'}, [tabBar, body]);
+ },
+};
+
+UDT['eth.org.swarm-dashboard'] = {
+ defaultProps: {},
+ render: () => el('section', {class:'eth-swarm-dashboard'}, [
+  el('div', {style:{display:'flex',justifyContent:'space-between',alignItems:'baseline',marginBottom:'0.5rem'}}, [
+   el('h3', {style:{margin:0,color:'var(--fg-bright)',fontSize:'1rem'}}, '◯ Swarm · 11 Runners'),
+   el('span', {style:{color:'var(--pass)',fontWeight:600}},
+    `${SWARM_DATA.passed} / ${SWARM_DATA.total} PASS`),
+  ]),
+  el('div', {style:{color:'var(--dim)',fontSize:'0.75rem'}},
+    'primes 11 and 31 · 2 cells × 5 roles + 1 coordinator (or 6 × 5 + 1) · the writing is the test'),
+  el('div', {class:'eth-swarm-runners'},
+   SWARM_DATA.runners.map(r => el('div', {class:'eth-swarm-runner'}, [
+    UDT['eth.atom.status-dot'].render({status:r.pass===r.agents?'pass':'fail'}),
+    el('span', {class:'runner-name'}, r.name),
+    UDT['eth.atom.label'].render({text:r.source, variant:'small dim'}),
+    UDT['eth.atom.badge'].render({
+     text:`${r.pass}/${r.agents}`,
+     variant: 'status ' + (r.pass===r.agents?'pass':'fail'),
+    }),
+   ]))),
+ ]),
+};
+
+UDT['eth.org.footer'] = {
+ defaultProps: {},
+ render: () => el('footer', {class:'eth-footer'}, [
+  el('div', {}, '📐🦆 · the enterprise doesn\'t stop · it routes · now the routes have voltmeters'),
+  el('div', {style:{fontSize:'0.7rem',marginTop:'0.5rem'}},
+   'codec/decompress.py --validate · runtime/test_swarm_*.py · stdlib only · no deps · atomic design, UDT registry, Perspective-compatible'),
+  el('div', {style:{fontSize:'0.7rem',marginTop:'0.5rem',color:'var(--dim2)'}},
+   '174 store objects · 196 cross-references · zero dangling'),
+ ]),
+};
+
+UDT['eth.org.page'] = {
+ defaultProps: {},
+ render: () => el('div', {}, [
+  UDT['eth.org.header'].render({}),
+  el('h2', {}, 'Papers · I through IX'),
+  UDT['eth.org.paper-list'].render({}),
+  el('h2', {}, 'Store · Object Graph'),
+  UDT['eth.org.store-grid'].render({}),
+  el('div', {style:{marginTop:'0.5rem',fontSize:'0.8rem',color:'var(--dim)'}},
+   '174 objects · 196 cross-references · zero dangling · click a card to browse'),
+  el('h2', {}, 'Store Explorer · Click IDs to Navigate'),
+  UDT['eth.org.store-explorer'].render({}),
+  el('h2', {}, 'Swarm · The Writing is the Test'),
+  UDT['eth.org.swarm-dashboard'].render({}),
+  UDT['eth.org.footer'].render({}),
+ ]),
+};
 </script>
+
+
+<script>
+/* ─────────────────────────────────────────────────────────────
+   VIEW_DEF · Perspective-style component tree (JSON)
+   The renderer walks this and instantiates each UDT.
+   ───────────────────────────────────────────────────────────── */
+const VIEW_DEF = {
+ type: "eth.org.page",
+ props: {},
+ children: [],
+};
+
+/* renderer · looks up type in UDT, merges props over defaults,
+   calls .render(), then recurses into children (appended to a
+   [data-slot=children] element if present, else to the root). */
+function renderView(viewDef, parentEl) {
+ const udt = UDT[viewDef.type];
+ if (!udt) {
+  parentEl.appendChild(el('div', {style:{color:'red'}}, `unknown UDT: ${viewDef.type}`));
+  return;
+ }
+ const mergedProps = Object.assign({}, udt.defaultProps, viewDef.props || {});
+ const node = udt.render(mergedProps);
+ if (viewDef.children && viewDef.children.length) {
+  const slot = node.querySelector('[data-slot="children"]') || node;
+  viewDef.children.forEach(child => renderView(child, slot));
+ }
+ parentEl.appendChild(node);
+}
+
+/* bootstrap */
+document.addEventListener('DOMContentLoaded', () => {
+ const app = document.getElementById('app');
+ renderView(VIEW_DEF, app);
+
+ // anchor-hash navigation: if URL has #C001 etc, scroll on load
+ if (location.hash) {
+  setTimeout(() => navigateTo(location.hash.slice(1)), 100);
+ }
+});
+
+/* Expose registry for debugging and for exporting to an actual
+   Ignition Perspective view definition. */
+window.ETH = {UDT, VIEW_DEF, STORE, PAPER_DATA, PAPERS_META, SWARM_DATA, navigateTo};
+</script>
+
 
 </body>
 </html>
