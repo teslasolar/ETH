@@ -4,7 +4,11 @@ function createTree(x, z, height, radius, files, repoName) {
   group.position.set(x, 0, z);
   group.add(createTrunk(height, radius));
 
-  const branchCount = Math.min(12, 4 + Math.floor(files.length / 5));
+  // scale branches to fit every file · aim ~5 flowers per branch
+  const branchCount = Math.max(4, Math.min(24,
+    Math.ceil(files.length / 5) + 2));
+  console.log(`[eden] ${repoName}: `
+    + `${files.length} files → ${branchCount} branches`);
   let fileIdx = 0;
 
   for (let i = 0; i < branchCount; i++) {
@@ -26,13 +30,15 @@ function createTree(x, z, height, radius, files, repoName) {
     leaves.position.copy(end);
     group.add(leaves);
 
+    // distribute remaining files across remaining branches (raised cap)
+    const remaining = files.length - fileIdx;
+    const remainingBranches = branchCount - i;
     const flowersOnBranch = Math.min(
-      4,
-      Math.ceil((files.length - fileIdx) / (branchCount - i))
+      10, Math.ceil(remaining / remainingBranches)
     );
     for (let j = 0; j < flowersOnBranch && fileIdx < files.length; j++) {
       const file = files[fileIdx++];
-      const t = 0.25 + (j / flowersOnBranch) * 0.65;
+      const t = 0.15 + (j / Math.max(1, flowersOnBranch - 1)) * 0.8;
       const pos = start.clone().lerp(end, t);
       pos.x += (Math.random() - 0.5) * 0.8;
       pos.y += (Math.random() - 0.5) * 0.5;

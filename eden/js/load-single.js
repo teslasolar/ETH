@@ -12,25 +12,32 @@ async function loadSingleRepo(repoPath) {
 
   try {
     let data = null;
+    let usedBranch = null;
     for (const branch of ['main', 'master']) {
       const res = await fetch(
         `https://api.github.com/repos/${repoPath}`
         + `/git/trees/${branch}?recursive=1`
       );
-      if (res.ok) { data = await res.json(); break; }
+      if (res.ok) { data = await res.json(); usedBranch = branch; break; }
     }
     if (!data?.tree) throw new Error('Could not load repo');
+    if (data.truncated) {
+      console.warn(`[eden] ${repoPath} tree was truncated by GitHub API`);
+    }
 
-    const files = data.tree
-      .filter(f => f.type === 'blob'
-        && !f.path.includes('node_modules')
-        && !f.path.startsWith('.'))
-      .slice(0, 200)
+    const allBlobs = data.tree.filter(f => f.type === 'blob');
+    const files = allBlobs
+      .filter(f => !f.path.includes('node_modules')
+                && !f.path.startsWith('.'))
+      .slice(0, 400)
       .map(f => ({
         path: f.path,
         name: f.path.split('/').pop(),
         size: f.size || 100,
       }));
+    console.log(`[eden] ${repoPath} @ ${usedBranch}: `
+      + `${data.tree.length} entries · ${allBlobs.length} blobs · `
+      + `${files.length} visible files`);
 
     const height = Math.min(40, 15 + files.length * 0.1);
     const radius = Math.min(3, 1 + files.length * 0.005);
