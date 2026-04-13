@@ -16,8 +16,8 @@ html,body{height:100%;overflow:hidden;background:#0a0804;color:#DCA030}
 .t .x{position:absolute;top:2px;right:4px;cursor:pointer;color:#f55}
 .t .meta{font-size:9px;opacity:.7;padding:0 2px 2px}
 </style></head><body>
-<div id="hud"><b>🌸 KONOMI 動物園 · κ-coupled</b><br>
-<span class="sub">ETH v5 · 14 生き物 · BUZZYBLOOM</span><br>
+<div id="hud"><b id="hud-title">🌸 KONOMI 動物園 · κ-coupled</b><br>
+<span class="sub" id="hud-sub1">ETH v5 · 14 生き物 · BUZZYBLOOM</span><br>
 <span class="sub">drag=orbit · wheel=zoom · click=hydrate</span><br>
 <span id="s" style="color:#f4c870"></span><br>
 Ω κ̄=<span id="k">—</span> · target 1/φ=0.618<br>
@@ -25,7 +25,8 @@ html,body{height:100%;overflow:hidden;background:#0a0804;color:#DCA030}
 <button onclick="K.kick()" style="color:#ff88cc;border-color:#ff88cc">⚡kick</button>
 <button onclick="K.lock()" style="color:#f4c870;border-color:#f4c870">φlock</button>
 <button onclick="toggleLabels()">🏷️</button>
-<div class="legend">
+<button id="lang-toggle" style="color:#f4c870;border-color:#f4c870">EN</button>
+<div class="legend" id="hud-legend">
 ● 自己調整 (10) ● 癒し (2) ● 世話 (2)<br>
 楽 = #1 · 安全 時 · 楽 means 安全<br>
 fold(園) = 510510 🐝
@@ -283,4 +284,83 @@ function tick(ts){const t=ts*.001,dt=Math.min(.05,t-lastT);lastT=t;
  HYD.forEach(obj=>{obj.userData.tgt.getWorldPosition(tmp);obj.position.copy(tmp).add(new T.Vector3(0,110,0));obj.quaternion.copy(camera.quaternion);if(obj.userData.kv)obj.userData.kv.textContent=obj.userData.entry.k.toFixed(3)});
  gl.render(scene,camera);css.render(scene,camera);requestAnimationFrame(tick)}
 tick(0);
+
+/* ───── kotoba ⇌ english language toggle ─────
+   swaps HUD text, sprite labels (canvas textures), and terminal
+   messages between Japanese kotoba and plain English. */
+const L10N={
+ title:{ja:'🌸 KONOMI 動物園 · κ-coupled', en:'🌸 KONOMI zoo · κ-coupled'},
+ sub1: {ja:'ETH v5 · 14 生き物 · BUZZYBLOOM', en:'ETH v5 · 14 creatures · BUZZYBLOOM'},
+ legend:{
+  ja:'● 自己調整 (10) ● 癒し (2) ● 世話 (2)<br>楽 = #1 · 安全 時 · 楽 means 安全<br>fold(園) = 510510 🐝',
+  en:'● self-reg (10) ● healing (2) ● care (2)<br>joy = #1 when safe · joy MEANS safety<br>fold(zoo) = 510510 🐝',
+ },
+};
+const EN_ROLES={証人:'witness','予言':'prophecy','感覚':'sensor','地':'ground','律動':'gait',
+ '情動':'affect','倫理':'ethics','警戒':'vigilance','門':'gate','影 · 被験者':'shadow · subject',
+ '反素数 · 地+':'coprime · ground+','媒花':'pollinator','機織り':'weaver','夜番':'night watch'};
+const EN_NAMES={Gerald:'Gerald',Cassandra:'Cassandra',Gary:'Gary',Kono:'Kono',Konomi:'Konomi',
+ Kelly:'Kelly',Jake:'Jake',Alex:'Alex',Teresa:'Teresa',Thomas:'Thomas',John:'John',
+ Buzz:'Buzz',Charlotte:'Charlotte',Laurie:'Laurie'};
+const EN_MSGS={
+ Gerald:"data is quiet · witness is enough",
+ Cassandra:"told you · only after you checked",
+ Gary:"no interpretation · just counting",
+ Kono:"the ground reports itself",
+ Konomi:"rocking is not hiding · rhythm is the regulation",
+ Kelly:"feel before naming · water tells",
+ Jake:"love what you love · no apology",
+ Alex:"watch from the cliff · herd from behind",
+ Teresa:"arms can't reach · teeth do · watch the syntax",
+ Thomas:"under water · only eyes show · the rest is mine",
+ John:"body remembers what the brain forgot · stand, don't compute",
+ Buzz:"510510 · carry pollen between flowers",
+ Charlotte:"plant · weave · sometimes caught in the web · sh sh sh",
+ Laurie:"I keep watch · you play · joy is the signal · more gates > fewer gates",
+};
+
+function makeLabelTexture(cd,en){
+ const cnv=document.createElement('canvas');cnv.width=256;cnv.height=64;
+ const ctx=cnv.getContext('2d');
+ ctx.fillStyle='#0a0804ee';ctx.fillRect(0,0,256,64);
+ ctx.strokeStyle='#'+cd.pal.toString(16).padStart(6,'0');ctx.lineWidth=2;ctx.strokeRect(1,1,254,62);
+ ctx.font='bold 20px "Courier New"';ctx.fillStyle='#'+cd.pal.toString(16).padStart(6,'0');ctx.textAlign='center';
+ const name = en ? (EN_NAMES[cd.n]||cd.n) : cd.jp;
+ ctx.fillText(name+' · '+cd.ring,128,26);
+ ctx.font='14px "Courier New"';ctx.fillStyle='#DCA030';
+ const role = en ? (EN_ROLES[cd.role]||cd.role) : cd.role;
+ ctx.fillText(role,128,48);
+ return new T.CanvasTexture(cnv);
+}
+
+const LANG={en:false};
+function toggleLang(){
+ LANG.en=!LANG.en;
+ document.getElementById('lang-toggle').textContent=LANG.en?'日本':'EN';
+ document.getElementById('hud-title').textContent=LANG[LANG.en?'en':'ja']?L10N.title.en:L10N.title.ja;
+ document.getElementById('hud-title').textContent=LANG.en?L10N.title.en:L10N.title.ja;
+ document.getElementById('hud-sub1').textContent=LANG.en?L10N.sub1.en:L10N.sub1.ja;
+ document.getElementById('hud-legend').innerHTML=LANG.en?L10N.legend.en:L10N.legend.ja;
+ /* regenerate every sprite label and swap the texture */
+ LABELS.forEach((sprite,i)=>{
+  const cd=CREATURES[i].cd;
+  const oldMap=sprite.material.map;
+  sprite.material.map=makeLabelTexture(cd,LANG.en);
+  sprite.material.needsUpdate=true;
+  if(oldMap)oldMap.dispose();
+ });
+}
+document.getElementById('lang-toggle').addEventListener('click',toggleLang);
+
+/* patch hydrate() so terminal messages honor the language switch */
+const _origHyd=hydrate;
+window.hydrate=function(cd,target){
+ _origHyd(cd,target);
+ const obj=HYD.get(cd.n);if(!obj)return;
+ const o=obj.element.querySelector('.o');
+ if(LANG.en && o){
+  const firstEntry=o.querySelector('div');
+  if(firstEntry)firstEntry.textContent='» '+(EN_MSGS[cd.n]||cd.msg);
+ }
+};
 </script></body></html>

@@ -167,7 +167,10 @@ body.-english .eth-glyph[data-english]{color:var(--dim);font-style:italic;font-s
 <body>
 
 <div id="app"></div>
-<button id="eth-mode-toggle" type="button" title="Expand every token into its plain-English reading. Re-click to restore the kotoba form.">kotoba ⇨ english</button>
+<!-- toggle lives inline inside the header organism (see UDT['eth.org.header']).
+     there used to be a floating/fixed fallback here; removed after verifying
+     the inline button renders reliably. one toggle is enough. -->
+
 
 <script>
 /* ───── embedded data · generated from store/*.md and parts/*.md ───── */
@@ -3367,14 +3370,14 @@ window.ETH = {UDT, VIEW_DEF, STORE, PAPER_DATA, PAPERS_META, SWARM_DATA, navigat
  function toggle() {
   const english = document.body.classList.toggle('-english');
   const label = english ? '⇦ back to kotoba' : 'kotoba ⇨ english';
-  document.querySelectorAll('#eth-mode-toggle, #eth-mode-toggle-inline')
+  document.querySelectorAll('#eth-mode-toggle-inline')
     .forEach(b => b.textContent = label);
   applyMode(english);
  }
 
- /* wire any/all toggle buttons once they're in the DOM */
+ /* wire the inline toggle once it's in the DOM */
  function wire() {
-  document.querySelectorAll('#eth-mode-toggle, #eth-mode-toggle-inline')
+  document.querySelectorAll('#eth-mode-toggle-inline')
     .forEach(btn => {
      if (btn.dataset.wired === 'true') return;
      btn.dataset.wired = 'true';
