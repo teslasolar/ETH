@@ -1,0 +1,26 @@
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { background: #080510; overflow: hidden; font-family: Georgia, serif; }
+#canvas { width: 100%; height: 100%; display: block; }
+
+.panel {
+  position: absolute;
+  background: rgba(8,5,16,0.94);
+  border: 1px solid rgba(255,215,0,0.12);
+  border-radius: 6px;
+  padding: 0.8rem;
+  color: #fff8e7;
+  backdrop-filter: blur(10px);
+}
+
+#status   { top: 1rem; left: 1rem; font-size: 0.65rem; opacity: 0.5; }
+#controls { top: 1rem; right: 1rem; font-size: 0.55rem; opacity: 0.3; }
+
+#repo-info {
+  position: absolute;
+  bottom: 1rem;
+  right: 1rem;
+  font-size: 0.55rem;
+  opacity: 0.4;
+  max-width: 160px;
+}
+#repo-info h4 { color: #ffd700; margin-bottom: 0.3rem; font-size: 0.65rem; }

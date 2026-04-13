@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EDEN</title>
+<link rel="stylesheet" href="css/base.css">
+<link rel="stylesheet" href="css/input.css">
+<link rel="stylesheet" href="css/tooltip.css">
+<link rel="stylesheet" href="css/file.css">
+<link rel="stylesheet" href="css/tabs.css">
+<link rel="stylesheet" href="css/ai.css">
+<link rel="stylesheet" href="css/loading.css">
+</head>
+<body>
+
+<div id="loading"><h1>EDEN</h1><p id="load-status">Enter repository or username</p></div>
+<canvas id="canvas"></canvas>
+
+<div id="status" class="panel">
+  <div>files: <span id="file-count">0</span></div>
+  <div>trees: <span id="tree-count">0</span></div>
+</div>
+
+<div id="controls" class="panel">drag: orbit · scroll: zoom · click: inspect</div>
+
+<div id="repo-info" class="panel">
+  <h4 id="repo-name">-</h4>
+  <div id="repo-stats"></div>
+</div>
+
+<div id="input-panel" class="panel">
+  <h3>🌳 Grow</h3>
+  <input id="repo-input" placeholder="owner/repo or owner">
+  <button id="repo-btn">Grow</button>
+  <small>owner/repo → one tree<br>owner → forest of repos</small>
+</div>
+
+<div id="tooltip"><div id="tooltip-path"></div><div id="tooltip-meta"></div></div>
+
+<div id="file-panel" class="panel">
+  <div id="file-header">
+    <span id="file-title"></span>
+    <button id="file-close">×</button>
+  </div>
+  <div id="file-meta"></div>
+  <div id="file-tabs">
+    <button class="tab active" data-tab="code">Code</button>
+    <button class="tab" data-tab="preview">Preview</button>
+    <button class="tab" data-tab="ai">AI</button>
+  </div>
+  <div id="tab-code" class="tab-content active">
+    <div id="file-content"><pre id="file-code"></pre></div>
+  </div>
+  <div id="tab-preview" class="tab-content">
+    <iframe id="file-iframe"></iframe>
+  </div>
+  <div id="tab-ai" class="tab-content">
+    <div id="ai-status">🤖 Ready</div>
+    <div id="ai-messages"></div>
+    <div id="ai-input-row">
+      <input id="ai-input" placeholder="Ask about this file...">
+      <button id="ai-send">→</button>
+    </div>
+    <div id="ai-actions">
+      <button data-action="explain">Explain</button>
+      <button data-action="refactor">Refactor</button>
+      <button data-action="bugs">Bugs</button>
+      <button data-action="run">Run</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="js/const.js"></script>
+<script src="js/scene.js"></script>
+<script src="js/lighting.js"></script>
+<script src="js/world.js"></script>
+<script src="js/state.js"></script>
+<script src="js/geo-trunk.js"></script>
+<script src="js/geo-branch.js"></script>
+<script src="js/geo-flower.js"></script>
+<script src="js/geo-leaves.js"></script>
+<script src="js/colors.js"></script>
+<script src="js/tree.js"></script>
+<script src="js/forest.js"></script>
+<script src="js/load-forest.js"></script>
+<script src="js/load-single.js"></script>
+<script src="js/loader.js"></script>
+<script src="js/ui.js"></script>
+<script src="js/raycaster.js"></script>
+<script src="js/mouse.js"></script>
+<script src="js/click.js"></script>
+<script src="js/file-panel.js"></script>
+<script src="js/ai-send.js"></script>
+<script src="js/ai-render.js"></script>
+<script src="js/camera.js"></script>
+<script src="js/events-canvas.js"></script>
+<script src="js/events-ui.js"></script>
+<script src="js/render.js"></script>
+
+</body>
+</html>
