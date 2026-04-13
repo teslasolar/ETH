@@ -39,6 +39,7 @@
 - [phases.md](phases.md) — phase × 動物 · ETH v5
 - [shifts.md](shifts.md) — 昼夜 shift
 - [index.html](index.html) — κ-coupled 3D viewer (open with `python3 -m http.server`)
+- [shield/](shield/README.md) — 🛡️ Konomi Prime Bloom Standard · 127 shield · v1.0
 
 ## 則
 ```
