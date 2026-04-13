@@ -3028,9 +3028,28 @@ UDT['eth.mol.row-layer'] = {
 UDT['eth.org.header'] = {
  defaultProps: {},
  render: () => el('header', {class:'eth-hero'}, [
-  el('h1', {}, 'ETH · 腸 Factory'),
-  el('div', {class:'eth-subtitle'}, 'Enteric Translation Hypothesis · Frumkin · 2026 · v1 + v2 + v3 + v4 + v5'),
-  el('div', {class:'eth-sigil'}, '● ⬛ 〜 ♡ △ ◐ ◯'),
+  el('div', {style:{display:'flex',justifyContent:'space-between',alignItems:'flex-start',gap:'1rem',flexWrap:'wrap'}}, [
+   el('div', {}, [
+    el('h1', {}, 'ETH · 腸 Factory'),
+    el('div', {class:'eth-subtitle'}, 'Enteric Translation Hypothesis · Frumkin · 2026 · v1 + v2 + v3 + v4 + v5'),
+    el('div', {class:'eth-sigil'}, '● ⬛ 〜 ♡ △ ◐ ◯'),
+   ]),
+   /* inline toggle (always in normal flow — no fixed-positioning worries) */
+   el('button', {
+    id:'eth-mode-toggle-inline',
+    type:'button',
+    style:{
+     background:'#12121a', color:'#f4c870',
+     border:'1.5px solid #DCA030', borderRadius:'6px',
+     padding:'10px 16px',
+     fontFamily:'var(--mono)', fontSize:'13px', fontWeight:'600',
+     letterSpacing:'0.05em', cursor:'pointer',
+     boxShadow:'0 2px 8px rgba(0,0,0,0.4), 0 0 0 1px rgba(220,160,48,0.15)',
+     alignSelf:'flex-start',
+    },
+    title:'Expand every token into its plain-English reading. Re-click to restore.',
+   }, 'kotoba ⇨ english'),
+  ]),
   UDT['eth.mol.ring-bar'].render({}),
  ]),
 };
@@ -3347,18 +3366,20 @@ window.ETH = {UDT, VIEW_DEF, STORE, PAPER_DATA, PAPERS_META, SWARM_DATA, navigat
 
  function toggle() {
   const english = document.body.classList.toggle('-english');
-  const btn = document.getElementById('eth-mode-toggle');
-  if (btn) btn.textContent = english ? '⇦ back to kotoba' : 'kotoba ⇨ english';
+  const label = english ? '⇦ back to kotoba' : 'kotoba ⇨ english';
+  document.querySelectorAll('#eth-mode-toggle, #eth-mode-toggle-inline')
+    .forEach(b => b.textContent = label);
   applyMode(english);
  }
 
- /* wire the static button once it's in the DOM */
+ /* wire any/all toggle buttons once they're in the DOM */
  function wire() {
-  const btn = document.getElementById('eth-mode-toggle');
-  if (!btn) return;                          /* button already static in HTML */
-  if (btn.dataset.wired === 'true') return;
-  btn.dataset.wired = 'true';
-  btn.addEventListener('click', toggle);
+  document.querySelectorAll('#eth-mode-toggle, #eth-mode-toggle-inline')
+    .forEach(btn => {
+     if (btn.dataset.wired === 'true') return;
+     btn.dataset.wired = 'true';
+     btn.addEventListener('click', toggle);
+    });
  }
 
  if (document.readyState === 'loading') {
@@ -3366,9 +3387,10 @@ window.ETH = {UDT, VIEW_DEF, STORE, PAPER_DATA, PAPERS_META, SWARM_DATA, navigat
  } else {
   wire();
  }
- /* also re-wire just in case the app replaces nodes */
+ /* also re-wire periodically in case the app renders later */
  setTimeout(wire, 100);
  setTimeout(wire, 500);
+ setTimeout(wire, 1500);
 
  /* paper prose is lazy-fetched on click. when a pre.prose gets loaded
     after the toggle has already been flipped, re-apply the mode so
