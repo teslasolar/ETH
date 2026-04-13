@@ -136,15 +136,23 @@ pre{font-family:var(--mono);white-space:pre-wrap;word-wrap:break-word}
 .eth-footer{margin-top:4rem;padding-top:2rem;border-top:1px solid var(--border);
             text-align:center;color:var(--dim);font-size:0.75rem}
 
-/* ───── kotoba / english toggle ───── */
-#eth-mode-toggle{position:fixed;top:1rem;right:1rem;z-index:100;
-  background:var(--bg-raised);color:var(--fg-bright);
-  border:1px solid rgba(255,255,255,0.2);border-radius:6px;
-  padding:0.5rem 0.85rem;font-family:var(--mono);font-size:0.75rem;
+/* ───── kotoba ⇌ english toggle ───── */
+#eth-mode-toggle{
+  position:fixed !important;
+  top:14px !important;
+  right:14px !important;
+  z-index:9999 !important;
+  background:#12121a;color:#f4c870;
+  border:1.5px solid #DCA030;border-radius:6px;
+  padding:10px 16px;
+  font-family:var(--mono);font-size:13px;font-weight:600;
   letter-spacing:0.05em;cursor:pointer;
-  box-shadow:0 2px 8px rgba(0,0,0,0.4)}
-#eth-mode-toggle:hover{border-color:var(--r2);color:var(--r2)}
-body.-english #eth-mode-toggle{border-color:var(--r2);color:var(--r2)}
+  box-shadow:0 4px 12px rgba(0,0,0,0.6), 0 0 0 1px rgba(220,160,48,0.15);
+  transition:border-color 0.15s,color 0.15s,background 0.15s;
+  user-select:none;
+}
+#eth-mode-toggle:hover{background:#1a1a28;border-color:var(--r2);color:var(--r2)}
+body.-english #eth-mode-toggle{border-color:var(--r2);color:var(--r2);background:#1a1a10}
 body.-english .eth-glyph[data-english]{color:var(--dim);font-style:italic;font-size:0.72rem;letter-spacing:0.02em}
 
 /* ───── id highlight target ───── */
@@ -159,6 +167,7 @@ body.-english .eth-glyph[data-english]{color:var(--dim);font-style:italic;font-s
 <body>
 
 <div id="app"></div>
+<button id="eth-mode-toggle" type="button" title="Expand every token into its plain-English reading. Re-click to restore the kotoba form.">kotoba ⇨ english</button>
 
 <script>
 /* ───── embedded data · generated from store/*.md and parts/*.md ───── */
@@ -3338,28 +3347,28 @@ window.ETH = {UDT, VIEW_DEF, STORE, PAPER_DATA, PAPERS_META, SWARM_DATA, navigat
 
  function toggle() {
   const english = document.body.classList.toggle('-english');
-  document.getElementById('eth-mode-toggle').textContent =
-    english ? '⇦ back to kotoba' : 'kotoba ⇨ english';
+  const btn = document.getElementById('eth-mode-toggle');
+  if (btn) btn.textContent = english ? '⇦ back to kotoba' : 'kotoba ⇨ english';
   applyMode(english);
  }
 
- function createButton() {
-  const btn = document.createElement('button');
-  btn.id = 'eth-mode-toggle';
-  btn.textContent = 'kotoba ⇨ english';
-  btn.title = 'Expand every token into its plain-English reading. '
-            + 'Re-click to restore the kotoba form.';
+ /* wire the static button once it's in the DOM */
+ function wire() {
+  const btn = document.getElementById('eth-mode-toggle');
+  if (!btn) return;                          /* button already static in HTML */
+  if (btn.dataset.wired === 'true') return;
+  btn.dataset.wired = 'true';
   btn.addEventListener('click', toggle);
-  document.body.appendChild(btn);
  }
 
- /* boot: slight delay so the main view has rendered first */
- const go = () => setTimeout(createButton, 50);
  if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', go);
+  document.addEventListener('DOMContentLoaded', wire);
  } else {
-  go();
+  wire();
  }
+ /* also re-wire just in case the app replaces nodes */
+ setTimeout(wire, 100);
+ setTimeout(wire, 500);
 
  /* paper prose is lazy-fetched on click. when a pre.prose gets loaded
     after the toggle has already been flipped, re-apply the mode so
