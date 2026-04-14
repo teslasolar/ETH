@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ETH · audio probe</title>
+<link rel="stylesheet" href="css/base.css">
+<link rel="stylesheet" href="css/panels.css">
+<link rel="stylesheet" href="css/spectrum.css">
+<link rel="stylesheet" href="css/bands.css">
+</head>
+<body>
+
+<h1>🐝 ETH · audio probe</h1>
+<p class="sub">YouTube URL → tab-audio capture → ring-banded FFT</p>
+
+<section id="input-panel" class="panel">
+  <label>YouTube URL or video ID</label>
+  <input id="yt-url" placeholder="https://youtube.com/watch?v=… · or · dQw4w9WgXcQ">
+  <div class="row">
+    <button id="load-btn">Load video</button>
+    <button id="capture-btn">🎤 Capture tab audio</button>
+  </div>
+  <small>
+    To analyze the audio, click <b>Capture tab audio</b> and pick this tab
+    in the browser's share dialog. <b>Make sure "Share audio" is checked</b>.
+    We never upload anything — the capture stays in your browser.
+  </small>
+  <div id="cap-status" class="cap-status">not capturing</div>
+</section>
+
+<section id="player-panel" class="panel">
+  <div id="player-wrap">
+    <iframe id="player" width="100%" height="280" frameborder="0" allow="autoplay; encrypted-media"></iframe>
+  </div>
+</section>
+
+<section id="spectrum-panel" class="panel">
+  <h3>Spectrum · log frequency</h3>
+  <canvas id="spectrum" width="800" height="120"></canvas>
+</section>
+
+<section id="bands-panel" class="panel">
+  <h3>ETH Ring bands · from <code>zoo/shield/rings.md</code></h3>
+  <div id="bands"></div>
+</section>
+
+<section id="meters-panel" class="panel">
+  <div class="meter-row">
+    <div>RMS volume</div>
+    <div><span id="rms-bar" class="bar"></span></div>
+    <div id="rms-val">—</div>
+  </div>
+  <div class="meter-row">
+    <div>Est. BPM <small>(low-band autocorr)</small></div>
+    <div id="bpm-val">—</div>
+  </div>
+  <div class="meter-row">
+    <div>Dominant pitch <small>(peak bin)</small></div>
+    <div id="pitch-val">—</div>
+  </div>
+</section>
+
+<footer>
+  <a href="../">← ETH repo</a> · <a href="../zoo/shield/rings.md">ring spec</a> · <a href="../zoo/">zoo</a>
+</footer>
+
+<script src="js/const.js"></script>
+<script src="js/state.js"></script>
+<script src="js/player.js"></script>
+<script src="js/capture.js"></script>
+<script src="js/analyze.js"></script>
+<script src="js/spectrum.js"></script>
+<script src="js/bands.js"></script>
+<script src="js/bpm.js"></script>
+<script src="js/pitch.js"></script>
+<script src="js/rms.js"></script>
+<script src="js/loop.js"></script>
+<script src="js/events.js"></script>
+</body>
+</html>

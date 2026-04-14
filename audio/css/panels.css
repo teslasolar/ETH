@@ -1,0 +1,35 @@
+.panel {
+  background:rgba(8,5,16,0.6);
+  border:1px solid rgba(255,215,0,0.12);
+  border-radius:6px;
+  padding:1rem;
+  margin-bottom:1rem;
+}
+#input-panel input {
+  width:100%; padding:0.5rem;
+  background:rgba(0,0,0,0.3);
+  border:1px solid rgba(255,215,0,0.2);
+  border-radius:4px; color:#fff8e7;
+  font-family:inherit; font-size:0.85rem;
+  margin-bottom:0.6rem;
+}
+.row { display:flex; gap:0.5rem; }
+#input-panel button {
+  padding:0.5rem 1rem;
+  background:linear-gradient(135deg,#ffd700,#f7931e);
+  color:#080510; border:none; border-radius:4px;
+  cursor:pointer; font-weight:600; font-size:0.75rem;
+  flex:1;
+}
+#input-panel button#capture-btn {
+  background:linear-gradient(135deg,#4a9,#369);
+  color:white;
+}
+.cap-status {
+  margin-top:0.5rem; font-size:0.7rem; opacity:0.6;
+  padding:0.4rem 0.6rem; background:rgba(0,0,0,0.3);
+  border-radius:4px; font-family:'Monaco','Menlo',monospace;
+}
+.cap-status.-live { color:#6c6; }
+.cap-status.-error { color:#f66; }
+#player-wrap { aspect-ratio:16/9; width:100%; }

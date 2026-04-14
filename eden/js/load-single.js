@@ -14,7 +14,7 @@ async function loadSingleRepo(repoPath) {
     let data = null;
     let usedBranch = null;
     for (const branch of ['main', 'master']) {
-      const res = await fetch(
+      const res = await gh(
         `https://api.github.com/repos/${repoPath}`
         + `/git/trees/${branch}?recursive=1`
       );

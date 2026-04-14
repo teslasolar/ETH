@@ -10,7 +10,7 @@ async function loadForest(username) {
   state.clickables = [];
 
   try {
-    const res = await fetch(
+    const res = await gh(
       `https://api.github.com/users/${username}/repos?per_page=100&sort=pushed`
     );
     if (!res.ok) throw new Error('User not found');
@@ -31,7 +31,7 @@ async function loadForest(username) {
       try {
         let data = null;
         for (const branch of ['main', 'master']) {
-          const r = await fetch(
+          const r = await gh(
             `https://api.github.com/repos/${username}/${repo.name}`
             + `/git/trees/${branch}?recursive=1`
           );

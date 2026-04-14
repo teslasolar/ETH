@@ -1,0 +1,39 @@
+#bands { display:flex; flex-direction:column; gap:4px; }
+.band {
+  display:grid;
+  grid-template-columns:36px 110px 1fr 60px;
+  gap:0.5rem; align-items:center;
+  font-size:0.7rem;
+}
+.band .glyph {
+  font-size:1rem; text-align:center;
+  text-shadow:0 0 6px currentColor;
+}
+.band .range {
+  opacity:0.55;
+  font-family:'Monaco','Menlo',monospace;
+  font-size:0.65rem;
+}
+.band .meter {
+  height:10px; background:rgba(255,255,255,0.04);
+  border-radius:5px; overflow:hidden;
+}
+.band .fill {
+  height:100%; width:0%;
+  transition:width 0.06s linear;
+  border-radius:5px;
+}
+.band .val {
+  text-align:right;
+  font-family:'Monaco','Menlo',monospace;
+  font-size:0.65rem;
+  color:#ffd700;
+}
+
+.band[data-ring="R0"] .fill { background:#993366; }
+.band[data-ring="R1"] .fill { background:#00aadd; }
+.band[data-ring="R2"] .fill { background:#ffaa00; }
+.band[data-ring="R3"] .fill { background:#ff4444; }
+.band[data-ring="R4"] .fill { background:#44aa44; }
+.band[data-ring="R5"] .fill { background:#aa44ff; }
+.band[data-ring="R6"] .fill { background:#eeeeee; }
